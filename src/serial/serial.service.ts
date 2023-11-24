@@ -52,7 +52,7 @@ export class SerialService implements OnModuleInit {
   async onModuleInit() {
     this.logger.log("[d] init SERIAL MODULE");
     await this.delta.createIfNotExist(1);
-    //this.starthandleRequestJob();
+    this.starthandleRequestJob(10);
     try {
       this.reader = new SerialPort({
         path: '/dev/ttyUSB0',
