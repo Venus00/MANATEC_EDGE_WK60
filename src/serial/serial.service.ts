@@ -52,7 +52,7 @@ export class SerialService implements OnModuleInit {
     this.starthandleRequestJob(5);
     try {
       this.reader = new SerialPort({
-        path: '/dev/ttyS0',
+        path: '/dev/ttyUSB0',
         baudRate: 9600,
       });
       //this.readerParser = new SerialPort({path:'/dev/ttyS0',baudRate:115200})
