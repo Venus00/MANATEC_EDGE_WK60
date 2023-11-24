@@ -45,26 +45,31 @@ export class MqttService {
   // }
 
   onMessage(topic: string, message: string) {
-    const payload = JSON.parse(message)
-    if (commands.hasOwnProperty(payload.command))
-    {
-      this.logger.log("[i] sending command ...")
-      this.serial.write(commands[payload.command])
-    }
-    else {
-      if(payload.type==="DATETIME")
+    try {
+      const payload = JSON.parse(message)
+      if (commands.hasOwnProperty(payload.command))
       {
-        this.logger.log("set Datetime")
-        this.serial.write(Buffer.from(payload.command))
-      }
-      else if (payload.type==="DELTA"){
-        this.serial.changehandleRequestJob(payload.command.toString());
+        this.logger.log("[i] sending command ...")
+        this.serial.write(commands[payload.command])
       }
       else {
-        this.logger.log('command not exist')
-
+        if(payload.type==="DATETIME")
+        {
+          this.logger.log("set Datetime")
+          this.serial.write(Buffer.from(payload.command))
+        }
+        else if (payload.type==="DELTA"){
+          this.serial.changehandleRequestJob(payload.command.toString());
+        }
+        else {
+          this.logger.log('command not exist')
+  
+        }
       }
+    } catch (error) {
+      
     }
+   
     
   }
 }
