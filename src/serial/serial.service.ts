@@ -45,7 +45,7 @@ export class SerialService implements OnModuleInit {
     private delta: DeltaService,
     private schedulerRegistry: SchedulerRegistry,
     @Inject(forwardRef(() => MqttService))
-    private mqttService: MqttService,
+    private mqtt: MqttService,
   ) {
 
   }
