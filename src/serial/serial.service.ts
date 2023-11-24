@@ -124,7 +124,7 @@ export class SerialService implements OnModuleInit {
             this.event.createEvent(this.payload)
           }
           this.logger.log("result : ", this.payload);
-          this.mqtt.publish('manatec/paylaod/status',JSON.stringify(this.payload));
+          this.mqtt.publish('manatec/payload/status',JSON.stringify(this.payload));
         }
 
         // console.log(util_data);
