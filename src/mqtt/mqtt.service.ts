@@ -30,7 +30,9 @@ export class MqttService {
   onDisconnect() {
     this.isConnected = false;
   }
-
+  publish(topic:string,message:string){
+    this.client.publish(topic,message);
+  }
   // @Cron('* * * * * *')
   // senderJob() {
   //   if(this.isConnected) {

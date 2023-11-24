@@ -9,6 +9,7 @@ import { commands } from './commands';
 import { Event } from './event.dto';
 import { DeltaService } from 'src/delta/delta.service';
 import { CronJob,CronTime } from 'cron';
+import { MqttService } from 'src/mqtt/mqtt.service';
 
 interface RAD2 {
   total: String
@@ -42,7 +43,8 @@ export class SerialService implements OnModuleInit {
   constructor(
     private event: EventService,
     private delta: DeltaService,
-    private schedulerRegistry: SchedulerRegistry
+    private schedulerRegistry: SchedulerRegistry,
+    private mqtt:MqttService
   ) {
 
   }
@@ -64,7 +66,7 @@ export class SerialService implements OnModuleInit {
       console.log(error);
     }
   }
-
+  
   write(data: Buffer) {
     this.reader.write(data);
   }
@@ -121,6 +123,7 @@ export class SerialService implements OnModuleInit {
             this.event.createEvent(this.payload)
           }
           this.logger.log("result : ", this.payload);
+          this.mqtt.publish('manatec/paylaod/status',JSON.stringify(this.payload));
         }
 
         // console.log(util_data);
