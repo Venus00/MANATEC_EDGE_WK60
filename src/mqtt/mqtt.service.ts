@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import * as mqtt from 'mqtt';
 import { EventService } from 'src/event/event.service';
@@ -12,6 +12,7 @@ export class MqttService {
 
   constructor(
     private event:EventService,
+    @Inject(forwardRef(() => SerialService))
     private serial:SerialService
   ) {
     this.client = mqtt.connect('mqtt://test.mosquitto.org',{
