@@ -5,6 +5,7 @@ import { EventModule } from 'src/event/event.module';
 import { SerialModule } from 'src/serial/serial.module';
 @Module({
   imports:[PrismaModule,EventModule,SerialModule],
-  providers: [MqttService]
+  providers: [MqttService],
+  exports:[MqttService]
 })
 export class MqttModule {}

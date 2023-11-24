@@ -3,8 +3,9 @@ import { SerialService } from './serial.service';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { EventModule } from 'src/event/event.module';
 import { DeltaModule } from 'src/delta/delta.module';
+import { MqttModule } from 'src/mqtt/mqtt.module';
 @Module({
-  imports: [EventModule,PrismaModule,DeltaModule],
+  imports: [EventModule,PrismaModule,DeltaModule,MqttModule],
   providers: [SerialService],
   exports:[SerialService]
 })
