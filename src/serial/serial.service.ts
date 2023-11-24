@@ -1,5 +1,5 @@
 
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleInit, forwardRef } from '@nestjs/common';
 import { SerialPort } from 'serialport';
 import { DelimiterParser } from '@serialport/parser-delimiter';
 import { EventService } from 'src/event/event.service';
@@ -44,7 +44,8 @@ export class SerialService implements OnModuleInit {
     private event: EventService,
     private delta: DeltaService,
     private schedulerRegistry: SchedulerRegistry,
-    private mqtt:MqttService
+    @Inject(forwardRef(() => MqttService)),
+    private mqttService: MqttService,
   ) {
 
   }
