@@ -5,9 +5,11 @@ import { SerialModule } from './serial/serial.module';
 import { MqttModule } from './mqtt/mqtt.module';
 import { EventModule } from './event/event.module';
 import { PrismaModule } from './prisma/prisma.module';
-
+import { ScheduleModule } from '@nestjs/schedule';
+import { DeltaModule } from './delta/delta.module';
 @Module({
-  imports: [SerialModule, MqttModule, EventModule, PrismaModule],
+  imports: [
+    ScheduleModule.forRoot(),SerialModule, MqttModule, EventModule, PrismaModule, DeltaModule],
   controllers: [AppController],
   providers: [AppService],
 })
