@@ -32,13 +32,14 @@ export class SerialService implements OnModuleInit {
   private readerParser;
   private readonly logger = new Logger(SerialService.name);
   private RAD_2_RESPONSE_LENGTH = 40;
-  private VERSION_RESPONSE_lENGTH = 12;
+  private VERSION_RESPONSE_lENGTH = 13;
   private VERSION_PROTOCOLE_RESPONSE_LENGTH = 3;
   private SN_RESPONSE_LENGTH = 2;
   private saveFlag = true;
   private lastSent:Date = new Date();
   private job;
   private deltaTime:number;
+  private command_type:string;
   private payload: State = {
     version:'',
     version_protocole:'',
@@ -67,7 +68,6 @@ export class SerialService implements OnModuleInit {
     this.logger.log("[d] init SERIAL MODULE");
     await this.delta.createIfNotExist(1);
     this.deltaTime = (await this.delta.get()).delta
-    this.starthandleRequestJob(this.deltaTime);
     try {
       this.reader = new SerialPort({
         path: '/dev/ttyUSB0',
@@ -82,27 +82,49 @@ export class SerialService implements OnModuleInit {
       console.log(error);
     }
 
-    const checkMachineState =  setInterval(()=>{
-      if(this.payload.version==='')
-      {
-        this.logger.log('[d] still not getting ervion ... request now')
-        this.write(commands.VERSION)
-      }
-      if(this.payload.version_protocole==='')
-      {
-        this.logger.log('[d] still not getting protocole vervion ... request now')
-        this.write(commands.VERSION_PROPTOCOLE)
-      }
+      const versionInverval = setInterval(()=>{
+        if(this.payload.version==='')
+        {
+          this.command_type="VERSION"
+          this.logger.log('[d] still not getting verion ... request now')
+          this.write(commands.VERSION)
+        }
+        else {
+          clearInterval(versionInverval)
+        }
+      },1000)
 
-      if(this.payload.sn==='')
-      {
-        this.logger.log('[d] still not getting sn ... request now')
-        this.write(commands.SN)
-      }
+      
+      const protocolVersionInterval = setInterval(()=>{
+        if(this.payload.version==='')
+        {
+          this.command_type="VERSION_PROTOCOLE"
+          this.logger.log('[d] still not getting protocole verion  ... request now')
+          this.write(commands.VERSION_PROPTOCOLE)
+        }
+        else {
+          clearInterval(protocolVersionInterval)
+        }
+      },1000)
+    
+      const snInterval = setInterval(()=>{
+        if(this.payload.version==='')
+        {
+          this.command_type="SN"
+          this.logger.log('[d] still not getting SN  ... request now')
+          this.write(commands.SN)
+        }
+        else {
+          clearInterval(snInterval)
+        }
+      },1000)
+      
 
       if(this.payload.version !== '' && this.payload.version_protocole !== '' && this.payload.sn !== '')
-      clearInterval(checkMachineState);
-    },10000)
+      {
+        this.command_type='RAD_2'  
+        this.starthandleRequestJob(this.deltaTime);
+      }
   }
   
   write(data: Buffer) {
@@ -165,44 +187,45 @@ export class SerialService implements OnModuleInit {
         let util_data;
         let length = buffer[1] + buffer[2] + buffer[3] + buffer[4];
         length = parseInt(length.toString(), 16)
-        this.logger.log(length)
-        switch (length) {
-          case this.RAD_2_RESPONSE_LENGTH:
-            this.logger.log('[d] rad2 type response')
-            util_data = buffer.toString().substring(5, length + 1).split(';');
-            this.payload.total = util_data[0];
-            this.payload.unit = util_data[1];
-            this.payload.number_weightings = util_data[2];
-            this.payload.voucher_number = util_data[3];
-            this.payload.status = util_data[4];
-            this.payload.weight_last_stroke = util_data[5];
-            this.payload.date_last_stroke = util_data[6];
-            this.payload.time_last_stroke = util_data[7];
-            this.payload.current_weight_loading = util_data[8];
-            this.logger.log("result rad2: ", this.payload);
-            this.lastSent = new Date();
-            if(this.mqtt.getConnectionState) 
+        switch (this.command_type) {
+          case 'RAD_2':
+            if(length>=40)
             {
-              this.mqtt.publishState(JSON.stringify(this.payload));
+              this.logger.log('[d] rad2 type response')
+              util_data = buffer.toString().substring(5, length + 1).split(';');
+              this.payload.total = util_data[0];
+              this.payload.unit = util_data[1];
+              this.payload.number_weightings = util_data[2];
+              this.payload.voucher_number = util_data[3];
+              this.payload.status = util_data[4];
+              this.payload.weight_last_stroke = util_data[5];
+              this.payload.date_last_stroke = util_data[6];
+              this.payload.time_last_stroke = util_data[7];
+              this.payload.current_weight_loading = util_data[8];
+              this.logger.log("result rad2: ", this.payload);
+              this.lastSent = new Date();
+              if(this.mqtt.getConnectionState) 
+              {
+                this.mqtt.publishState(JSON.stringify(this.payload));
+              }
+              else if (this.saveFlag)
+              {
+                this.event.createEvent(this.payload)
+              }
             }
-            else if (this.saveFlag)
-            {
-              this.event.createEvent(this.payload)
-            }
-  
             break;
-          case this.VERSION_RESPONSE_lENGTH:
+          case 'VERSION':
             this.logger.log('[d] version type response')
             util_data = buffer.toString().substring(5,length+1)
             this.payload.version = util_data;
             this.logger.log(this.payload.version)
             break;
-          case this.VERSION_PROTOCOLE_RESPONSE_LENGTH:
+          case 'VERSION_PROTOCOLE':
             this.logger.log('[d] version protcole type response')
             util_data = buffer.toString().substring(5,length+1)
             this.payload.version_protocole = util_data;
             this.logger.log(this.payload.version_protocole)
-          case this.SN_RESPONSE_LENGTH:
+          case 'SN':
             this.logger.log('[d] sn type response')
             util_data = buffer.toString().substring(5,length+1)
             this.payload.sn = util_data;
