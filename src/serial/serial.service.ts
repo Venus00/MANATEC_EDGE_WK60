@@ -166,8 +166,7 @@ export class SerialService implements OnModuleInit {
         let util_data;
         let length = buffer[1] + buffer[2] + buffer[3] + buffer[4];
         length = parseInt(length.toString(), 16)
-        this.logger.log("buffer is : " ,)
-
+        this.logger.log(buffer)
         switch (this.command_type) {
           case 'RAD_2':
             if(length>=40)
