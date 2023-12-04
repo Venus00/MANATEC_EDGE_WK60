@@ -38,6 +38,7 @@ export class MqttService {
     this.logger.error("mqtt server is disconnected")
   }
   publishState(message:string){
+    this.logger.log(this.TOPIC_PUBLISH_STATE)
     this.client.publish(this.TOPIC_PUBLISH_STATE,message);
   }
 
