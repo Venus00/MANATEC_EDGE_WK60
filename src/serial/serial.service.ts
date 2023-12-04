@@ -90,14 +90,14 @@ export class SerialService implements OnModuleInit {
           this.write(commands.VERSION)
           await this.sleep(2000);
         }
-        while(this.payload.version==='')
+        while(this.payload.version_protocole==='')
         {
           this.command_type="VERSION_PROTOCOLE"
           this.logger.log('[d] still not getting protocole verion  ... request now')
           this.write(commands.VERSION_PROPTOCOLE)
         }
     
-        while(this.payload.version==='')
+        while(this.payload.sn==='')
         {
           this.command_type="SN"
           this.logger.log('[d] still not getting SN  ... request now')
