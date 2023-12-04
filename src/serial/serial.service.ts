@@ -83,25 +83,23 @@ export class SerialService implements OnModuleInit {
     }
 
       this.command_type="VERSION"
-      this.logger.log('[d] still not getting verion ... request now')
       this.write(commands.VERSION)
       await this.sleep(10000);
+      if(this.payload.version === '') this.logger.error('[d] still not getting verion')
 
    
       this.command_type="VERSION_PROTOCOLE"
-      this.logger.log('[d] still not getting protocole verion  ... request now')
       this.write(commands.VERSION_PROPTOCOLE)
       await this.sleep(10000);
+      if(this.payload.version_protocole === '') this.logger.error('[d] still not getting protocole verion')
 
-    
        
       this.command_type="SN"
       this.logger.log('[d] still not getting SN  ... request now')
       this.write(commands.SN)
       await this.sleep(10000);
+      if(this.payload.sn === '') this.logger.error('[d] still not getting sn ... ')
 
-
-   
       this.command_type='RAD_2'  
       this.starthandleRequestJob(this.deltaTime);
       
