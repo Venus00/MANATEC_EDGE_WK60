@@ -184,10 +184,12 @@ export class SerialService implements OnModuleInit {
               this.lastSent = new Date();
               if(this.mqtt.getConnectionState) 
               {
+                this.logger.log("connection is good published")
                 this.mqtt.publishState(JSON.stringify(this.payload));
               }
               else if (this.saveFlag)
               {
+                this.logger.log("save in database");
                 this.event.createEvent(this.payload)
               }
             }
