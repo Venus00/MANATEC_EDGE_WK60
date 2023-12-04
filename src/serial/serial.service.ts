@@ -82,43 +82,25 @@ export class SerialService implements OnModuleInit {
       console.log(error);
     }
 
-      const versionInverval = setInterval(()=>{
-        if(this.payload.version==='')
+      while(this.payload.version==='')
         {
           this.command_type="VERSION"
           this.logger.log('[d] still not getting verion ... request now')
           this.write(commands.VERSION)
         }
-        else {
-          clearInterval(versionInverval)
-        }
-      },1000)
-
-      
-      const protocolVersionInterval = setInterval(()=>{
-        if(this.payload.version==='')
+        while(this.payload.version==='')
         {
           this.command_type="VERSION_PROTOCOLE"
           this.logger.log('[d] still not getting protocole verion  ... request now')
           this.write(commands.VERSION_PROPTOCOLE)
         }
-        else {
-          clearInterval(protocolVersionInterval)
-        }
-      },1000)
     
-      const snInterval = setInterval(()=>{
-        if(this.payload.version==='')
+        while(this.payload.version==='')
         {
           this.command_type="SN"
           this.logger.log('[d] still not getting SN  ... request now')
           this.write(commands.SN)
         }
-        else {
-          clearInterval(snInterval)
-        }
-      },1000)
-      
 
       if(this.payload.version !== '' && this.payload.version_protocole !== '' && this.payload.sn !== '')
       {
