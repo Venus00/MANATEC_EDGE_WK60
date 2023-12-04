@@ -13,6 +13,7 @@ import { MqttService } from 'src/mqtt/mqtt.service';
 import { AlertService } from 'src/alert/alert.service';
 
 interface State {
+  created_at:Date
   version:String
   version_protocole:String
   sn:String
@@ -41,6 +42,7 @@ export class SerialService implements OnModuleInit {
   private deltaTime:number;
   private command_type:string;
   private payload: State = {
+    created_at:new Date(),
     version:'',
     version_protocole:'',
     sn:'',
@@ -148,7 +150,11 @@ export class SerialService implements OnModuleInit {
     if(new Date().getTime() -this.lastSent.getTime() > this.deltaTime*1000){
       if(this.mqtt.getConnectionState) 
       {
-        this.mqtt.publishAlert('[d] device not sending data')
+        const alert = {
+          name:'device not sending data',
+          created_at:new Date()
+        }
+        this.mqtt.publishAlert(JSON.stringify(alert))
       }
       else if (this.saveFlag)
       {
@@ -171,6 +177,7 @@ export class SerialService implements OnModuleInit {
             {
               this.logger.log('[d] rad2 type response')
               util_data = buffer.toString().substring(5, length + 1).split(';');
+              this.payload.created_at = new Date();
               this.payload.total = util_data[0];
               this.payload.unit = util_data[1];
               this.payload.number_weightings = util_data[2];
