@@ -106,7 +106,12 @@ export class SerialService implements OnModuleInit {
   }
   
   write(data: Buffer) {
-    this.reader.write(data);
+    try {
+      this.reader.write(data);
+
+    } catch (error) {
+      this.logger.log("error writing")
+    }
   }
 
   handleRequestJob() {
@@ -156,6 +161,7 @@ export class SerialService implements OnModuleInit {
     try {
       //this.logger.log(buffer)
       if (buffer != null && buffer.length > 7 && buffer[0] === 0x02) {
+        this.logger.log(buffer)
         let util_data;
         let length = buffer[1] + buffer[2] + buffer[3] + buffer[4];
         length = parseInt(length.toString(), 16)
