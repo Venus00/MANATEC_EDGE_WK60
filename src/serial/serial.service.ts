@@ -196,18 +196,18 @@ export class SerialService implements OnModuleInit {
             break;
           case 'VERSION':
             this.logger.log('[d] version type response')
-            util_data = buffer.subarray(5,length+1);
+            util_data = buffer.toString().substring(5, length + 1);
             this.payload.version = util_data;
             this.logger.log("version : ",this.payload.version)
             break;
           case 'VERSION_PROTOCOLE':
             this.logger.log('[d] version protcole type response')
             util_data = buffer.toString().substring(5,length+1)
-            this.payload.version_protocole = buffer.subarray(5,length+1).toString();
+            this.payload.version_protocole =buffer.toString().substring(5, length + 1);
             this.logger.log("protocole version",this.payload.version_protocole)
           case 'SN':
             this.logger.log('[d] sn type response')
-            util_data = buffer.subarray(5,length+1).toString();
+            util_data =buffer.toString().substring(5, length + 1) ;
             this.payload.sn = util_data;
             this.logger.log("sn : ",this.payload.sn)
           default:
