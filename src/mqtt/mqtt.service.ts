@@ -11,9 +11,9 @@ export class MqttService {
   private client: mqtt.MqttClient;
   private isConnected:boolean = false;
   private logger = new Logger(MqttService.name)
-  private TOPIC_SUBSCRIBE = process.env.TOPIC_SUBSCRIBE.replace('+',getMAC('wlan0'))
-  private TOPIC_PUBLISH_STATE = process.env.TOPIC_PUBLISH.replace('+',getMAC('wlan0'))
-  private TOPIC_PUBLISH_ALERTE = process.env.TOPIC_ALERT.replace('+',getMAC('wlan0'))
+  private TOPIC_SUBSCRIBE = process.env.TOPIC_SUBSCRIBE.replace('+',getMAC('wlan0').replaceAll(':',''))
+  private TOPIC_PUBLISH_STATE = process.env.TOPIC_PUBLISH.replace('+',getMAC('wlan0').replaceAll(':',''))
+  private TOPIC_PUBLISH_ALERTE = process.env.TOPIC_ALERT.replace('+',getMAC('wlan0').replaceAll(':',''))
 
   constructor(
     private event:EventService,
