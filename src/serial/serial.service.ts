@@ -82,11 +82,13 @@ export class SerialService implements OnModuleInit {
       console.log(error);
     }
 
+      let counter = 0;
       while(this.payload.version==='')
         {
           this.command_type="VERSION"
           this.logger.log('[d] still not getting verion ... request now')
           this.write(commands.VERSION)
+          this.sleep(2000);
         }
         while(this.payload.version==='')
         {
@@ -220,4 +222,6 @@ export class SerialService implements OnModuleInit {
       this.logger.error(error);
     }
   }
+
+  sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 }
