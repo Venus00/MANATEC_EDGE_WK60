@@ -31,7 +31,7 @@ export class SerialService implements OnModuleInit {
   private reader;
   private readerParser;
   private readonly logger = new Logger(SerialService.name);
-  private RAD_2_RESPONSE_LENGTH = 36;
+  private RAD_2_RESPONSE_LENGTH = 40;
   private VERSION_RESPONSE_lENGTH = 12;
   private VERSION_PROTOCOLE_RESPONSE_LENGTH = 3;
   private SN_RESPONSE_LENGTH = 2;

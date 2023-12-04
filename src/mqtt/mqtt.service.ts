@@ -21,8 +21,8 @@ export class MqttService {
     @Inject(forwardRef(() => SerialService))
     private serial:SerialService
   ) {
-    this.client = mqtt.connect(`mqtt://${process.env.MQTT_SERVER}}`,{
-    });
+    this.logger.log(process.env.MQTT_SERVER)
+    this.client = mqtt.connect(`mqtt://${process.env.MQTT_SERVER}}`);
     this.client.on('connect', this.onConnect.bind(this));
     this.client.on('message', this.onMessage.bind(this));
     this.client.on('disconnect',this.onDisconnect.bind(this));
