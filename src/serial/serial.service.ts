@@ -10,6 +10,7 @@ import { Event } from './event.dto';
 import { DeltaService } from 'src/delta/delta.service';
 import { CronJob,CronTime } from 'cron';
 import { MqttService } from 'src/mqtt/mqtt.service';
+import { AlertService } from 'src/alert/alert.service';
 
 interface State {
   version:String
@@ -30,12 +31,14 @@ export class SerialService implements OnModuleInit {
   private reader;
   private readerParser;
   private readonly logger = new Logger(SerialService.name);
-  private RAD_2_RESPONSE_LENGTH = 9;
-  private VERSION_RESPONSE_lENGTH = 7;
-  private VERSION_PROTOCOLE_RESPONSE_LENGTH = 10;
+  private RAD_2_RESPONSE_LENGTH = 36;
+  private VERSION_RESPONSE_lENGTH = 12;
+  private VERSION_PROTOCOLE_RESPONSE_LENGTH = 3;
   private SN_RESPONSE_LENGTH = 2;
   private saveFlag = true;
+  private lastSent:Date = new Date();
   private job;
+  private deltaTime:number;
   private payload: State = {
     version:'',
     version_protocole:'',
@@ -53,6 +56,7 @@ export class SerialService implements OnModuleInit {
   constructor(
     private event: EventService,
     private delta: DeltaService,
+    private alert:AlertService,
     private schedulerRegistry: SchedulerRegistry,
     @Inject(forwardRef(() => MqttService))
     private mqtt: MqttService,
@@ -62,7 +66,8 @@ export class SerialService implements OnModuleInit {
   async onModuleInit() {
     this.logger.log("[d] init SERIAL MODULE");
     await this.delta.createIfNotExist(1);
-    this.starthandleRequestJob(10);
+    this.deltaTime = (await this.delta.get()).delta
+    this.starthandleRequestJob(this.deltaTime);
     try {
       this.reader = new SerialPort({
         path: '/dev/ttyUSB0',
@@ -76,6 +81,28 @@ export class SerialService implements OnModuleInit {
     } catch (error) {
       console.log(error);
     }
+
+    const checkMachineState =  setInterval(()=>{
+      if(this.payload.version==='')
+      {
+        this.logger.log('[d] still not getting ervion ... request now')
+        this.write(commands.VERSION)
+      }
+      if(this.payload.version_protocole==='')
+      {
+        this.logger.log('[d] still not getting protocole vervion ... request now')
+        this.write(commands.VERSION_PROPTOCOLE)
+      }
+
+      if(this.payload.sn==='')
+      {
+        this.logger.log('[d] still not getting sn ... request now')
+        this.write(commands.SN)
+      }
+
+      if(this.payload.version !== '' && this.payload.version_protocole !== '' && this.payload.sn !== '')
+      clearInterval(checkMachineState);
+    },10000)
   }
   
   write(data: Buffer) {
@@ -111,6 +138,20 @@ export class SerialService implements OnModuleInit {
     }
   }
 
+  @Cron(CronExpression.EVERY_10_SECONDS)
+  checkALert() {
+    if(new Date().getTime() -this.lastSent.getTime() > this.deltaTime*1000){
+      if(this.mqtt.getConnectionState) 
+      {
+        this.mqtt.publishAlert('[d] device not sending data')
+      }
+      else if (this.saveFlag)
+      {
+        this.alert.create('[d] device not sending data')
+      }
+    }
+  }
+
   onReaderData(buffer: Buffer) {
     try {
       //this.logger.log(buffer)
@@ -132,39 +173,40 @@ export class SerialService implements OnModuleInit {
             this.payload.date_last_stroke = util_data[6];
             this.payload.time_last_stroke = util_data[7];
             this.payload.current_weight_loading = util_data[8];
+            this.logger.log("result rad2: ", this.payload);
+            this.lastSent = new Date();
+            if(this.mqtt.getConnectionState) 
+            {
+              this.mqtt.publishState(JSON.stringify(this.payload));
+            }
+            else if (this.saveFlag)
+            {
+              this.event.createEvent(this.payload)
+            }
+  
             break;
           case this.VERSION_RESPONSE_lENGTH:
+            this.logger.log('[d] version type response')
             util_data = buffer.toString().substring(5,length+1)
             this.payload.version = util_data;
+            this.logger.log(this.payload.version)
             break;
           case this.VERSION_PROTOCOLE_RESPONSE_LENGTH:
+            this.logger.log('[d] version protcole type response')
             util_data = buffer.toString().substring(5,length+1)
             this.payload.version_protocole = util_data;
+            this.logger.log(this.payload.version_protocole)
           case this.SN_RESPONSE_LENGTH:
+            this.logger.log('[d] sn type response')
             util_data = buffer.toString().substring(5,length+1)
             this.payload.sn = util_data;
+            this.logger.log(this.payload.sn)
           default:
             break;
         }
-
-        // if (util_data.length === 9) {
-        //   if(this.saveFlag) {
-        //     this.event.createEvent(this.payload)
-        //   }
-        //   this.logger.log("result : ", this.payload);
-        //   this.mqtt.publish('manatec/payload/status',JSON.stringify(this.payload));
-        // }
-
-        // console.log(util_data);
-        // this.logger.log(util_data)
-        //this.event.createEvent(util_data);
-
       }
     } catch (error) {
       this.logger.error(error);
     }
-  }
-  insertFirstDeltaIfNotExist() {
-    this
   }
 }

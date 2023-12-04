@@ -6,7 +6,7 @@ export class DeltaService {
   constructor(private prisma: PrismaService) {}
 
   async get(){
-    await this.prisma.delta.findFirst({
+   return await this.prisma.delta.findFirst({
       where:{
         name:"delta"
       }

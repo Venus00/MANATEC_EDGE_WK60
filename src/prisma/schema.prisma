@@ -9,6 +9,9 @@ generator client {
 
 model Event {
   id Int @default(autoincrement()) @id
+  version String?
+  version_protocole String?
+  sn String?
   total String
   unit String
   number_weightings String
@@ -23,7 +26,13 @@ model Event {
   updated_at DateTime @updatedAt
 }
 
-
+model Alert {
+  id Int @default(autoincrement()) @id
+  name String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  isSent Boolean @default(false)
+}
 model Delta {
   id Int @default(autoincrement()) @id
   name String @unique

@@ -7,9 +7,10 @@ import { EventModule } from './event/event.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DeltaModule } from './delta/delta.module';
+import { AlertModule } from './alert/alert.module';
 @Module({
   imports: [
-    ScheduleModule.forRoot(),SerialModule, MqttModule, EventModule, PrismaModule, DeltaModule],
+    ScheduleModule.forRoot(),SerialModule, MqttModule, EventModule, PrismaModule, DeltaModule, AlertModule],
   controllers: [AppController],
   providers: [AppService],
 })

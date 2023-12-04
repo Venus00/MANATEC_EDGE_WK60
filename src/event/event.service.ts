@@ -7,8 +7,8 @@ export class EventService {
   constructor(private prisma: PrismaService) {}
 
   
-  async events(params:any) {
-    await this.prisma.event.findMany();
+  async events() {
+    return await this.prisma.event.findMany();
   }
   async delete(id:number) {
     await this.prisma.event.delete({
