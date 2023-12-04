@@ -163,10 +163,11 @@ export class SerialService implements OnModuleInit {
     try {
       //this.logger.log(buffer)
       if (buffer != null && buffer.length > 7 && buffer[0] === 0x02) {
-        this.logger.log("buffer is : " ,buffer)
         let util_data;
         let length = buffer[1] + buffer[2] + buffer[3] + buffer[4];
         length = parseInt(length.toString(), 16)
+        this.logger.log("buffer is : " ,)
+
         switch (this.command_type) {
           case 'RAD_2':
             if(length>=40)
@@ -196,18 +197,18 @@ export class SerialService implements OnModuleInit {
             break;
           case 'VERSION':
             this.logger.log('[d] version type response')
-            util_data = buffer.toString().substring(5,length+1)
+            util_data = buffer.subarray(5,length+1).toString();
             this.payload.version = util_data;
             this.logger.log("version : ",this.payload.version)
             break;
           case 'VERSION_PROTOCOLE':
             this.logger.log('[d] version protcole type response')
             util_data = buffer.toString().substring(5,length+1)
-            this.payload.version_protocole = util_data;
+            this.payload.version_protocole = buffer.subarray(5,length+1).toString();
             this.logger.log("protocole version",this.payload.version_protocole)
           case 'SN':
             this.logger.log('[d] sn type response')
-            util_data = buffer.toString().substring(5,length+1)
+            util_data = buffer.subarray(5,length+1).toString();
             this.payload.sn = util_data;
             this.logger.log("sn : ",this.payload.sn)
           default:
