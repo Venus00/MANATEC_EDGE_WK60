@@ -82,33 +82,29 @@ export class SerialService implements OnModuleInit {
       console.log(error);
     }
 
-      let counter = 0;
-      while(this.payload.version==='')
-        {
-          this.command_type="VERSION"
-          this.logger.log('[d] still not getting verion ... request now')
-          this.write(commands.VERSION)
-          await this.sleep(2000);
-        }
-        while(this.payload.version_protocole==='')
-        {
-          this.command_type="VERSION_PROTOCOLE"
-          this.logger.log('[d] still not getting protocole verion  ... request now')
-          this.write(commands.VERSION_PROPTOCOLE)
-        }
-    
-        while(this.payload.sn==='')
-        {
-          this.command_type="SN"
-          this.logger.log('[d] still not getting SN  ... request now')
-          this.write(commands.SN)
-        }
+      this.command_type="VERSION"
+      this.logger.log('[d] still not getting verion ... request now')
+      this.write(commands.VERSION)
+      await this.sleep(10000);
 
-      if(this.payload.version !== '' && this.payload.version_protocole !== '' && this.payload.sn !== '')
-      {
-        this.command_type='RAD_2'  
-        this.starthandleRequestJob(this.deltaTime);
-      }
+   
+      this.command_type="VERSION_PROTOCOLE"
+      this.logger.log('[d] still not getting protocole verion  ... request now')
+      this.write(commands.VERSION_PROPTOCOLE)
+      await this.sleep(10000);
+
+    
+       
+      this.command_type="SN"
+      this.logger.log('[d] still not getting SN  ... request now')
+      this.write(commands.SN)
+      await this.sleep(10000);
+
+
+   
+      this.command_type='RAD_2'  
+      this.starthandleRequestJob(this.deltaTime);
+      
   }
   
   write(data: Buffer) {
