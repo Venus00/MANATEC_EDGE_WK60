@@ -147,6 +147,8 @@ export class SerialService implements OnModuleInit {
 
   @Cron(CronExpression.EVERY_10_SECONDS)
   checkALert() {
+    this.logger.log(new Date().getTime() -this.lastSent.getTime())
+    this.logger.log(this.deltaTime*1000)
     if(new Date().getTime() -this.lastSent.getTime() > this.deltaTime*1000){
       if(this.mqtt.getConnectionState) 
       {
