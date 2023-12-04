@@ -11,7 +11,10 @@ import { DeltaService } from 'src/delta/delta.service';
 import { CronJob,CronTime } from 'cron';
 import { MqttService } from 'src/mqtt/mqtt.service';
 
-interface RAD2 {
+interface State {
+  version:String
+  version_protocole:String
+  sn:String
   total: String
   unit: String
   number_weightings: String
@@ -27,9 +30,16 @@ export class SerialService implements OnModuleInit {
   private reader;
   private readerParser;
   private readonly logger = new Logger(SerialService.name);
+  private RAD_2_RESPONSE_LENGTH = 9;
+  private VERSION_RESPONSE_lENGTH = 7;
+  private VERSION_PROTOCOLE_RESPONSE_LENGTH = 10;
+  private SN_RESPONSE_LENGTH = 2;
   private saveFlag = true;
   private job;
-  private payload: RAD2 = {
+  private payload: State = {
+    version:'',
+    version_protocole:'',
+    sn:'',
     total: '',
     unit: '',
     number_weightings: '',
@@ -105,27 +115,45 @@ export class SerialService implements OnModuleInit {
     try {
       //this.logger.log(buffer)
       if (buffer != null && buffer.length > 7 && buffer[0] === 0x02) {
+        let util_data;
         let length = buffer[1] + buffer[2] + buffer[3] + buffer[4];
         length = parseInt(length.toString(), 16)
-        const util_data = buffer.toString().substring(5, length + 1).split(';');
-        this.logger.log(util_data.length)
-        if (util_data.length === 9) {
-          this.logger.log('enter')
-          this.payload.total = util_data[0];
-          this.payload.unit = util_data[1];
-          this.payload.number_weightings = util_data[2];
-          this.payload.voucher_number = util_data[3];
-          this.payload.status = util_data[4];
-          this.payload.weight_last_stroke = util_data[5];
-          this.payload.date_last_stroke = util_data[6];
-          this.payload.time_last_stroke = util_data[7];
-          this.payload.current_weight_loading = util_data[8];
-          if(this.saveFlag) {
-            this.event.createEvent(this.payload)
-          }
-          this.logger.log("result : ", this.payload);
-          this.mqtt.publish('manatec/payload/status',JSON.stringify(this.payload));
+        this.logger.log(length)
+        switch (length) {
+          case this.RAD_2_RESPONSE_LENGTH:
+            this.logger.log('[d] rad2 type response')
+            util_data = buffer.toString().substring(5, length + 1).split(';');
+            this.payload.total = util_data[0];
+            this.payload.unit = util_data[1];
+            this.payload.number_weightings = util_data[2];
+            this.payload.voucher_number = util_data[3];
+            this.payload.status = util_data[4];
+            this.payload.weight_last_stroke = util_data[5];
+            this.payload.date_last_stroke = util_data[6];
+            this.payload.time_last_stroke = util_data[7];
+            this.payload.current_weight_loading = util_data[8];
+            break;
+          case this.VERSION_RESPONSE_lENGTH:
+            util_data = buffer.toString().substring(5,length+1)
+            this.payload.version = util_data;
+            break;
+          case this.VERSION_PROTOCOLE_RESPONSE_LENGTH:
+            util_data = buffer.toString().substring(5,length+1)
+            this.payload.version_protocole = util_data;
+          case this.SN_RESPONSE_LENGTH:
+            util_data = buffer.toString().substring(5,length+1)
+            this.payload.sn = util_data;
+          default:
+            break;
         }
+
+        // if (util_data.length === 9) {
+        //   if(this.saveFlag) {
+        //     this.event.createEvent(this.payload)
+        //   }
+        //   this.logger.log("result : ", this.payload);
+        //   this.mqtt.publish('manatec/payload/status',JSON.stringify(this.payload));
+        // }
 
         // console.log(util_data);
         // this.logger.log(util_data)
