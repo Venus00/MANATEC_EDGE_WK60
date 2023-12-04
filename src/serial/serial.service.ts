@@ -88,7 +88,7 @@ export class SerialService implements OnModuleInit {
           this.command_type="VERSION"
           this.logger.log('[d] still not getting verion ... request now')
           this.write(commands.VERSION)
-          this.sleep(2000);
+          await this.sleep(2000);
         }
         while(this.payload.version==='')
         {
