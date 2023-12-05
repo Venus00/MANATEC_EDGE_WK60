@@ -87,30 +87,29 @@ export class SerialService implements OnModuleInit {
     this.logger.log("[d] Start Search for Device ...")
 
     this.path = await this.checkDevice();
-    this.init_device();
-
-
-
-    this.command_type = "VERSION"
-    this.write(commands.VERSION)
-    await this.sleep(5000);
-    if (this.payload.version === '') this.logger.error('[d] still not getting verion')
-
-
-    this.command_type = "VERSION_PROTOCOLE"
-    this.write(commands.VERSION_PROPTOCOLE)
-    await this.sleep(5000);
-    if (this.payload.version_protocole === '') this.logger.error('[d] still not getting protocole verion')
-
-
-    this.command_type = "SN"
-    this.logger.log('[d] still not getting SN  ... request now')
-    this.write(commands.SN)
-    await this.sleep(5000);
-    if (this.payload.sn === '') this.logger.error('[d] still not getting sn ... ')
-
-    this.command_type = 'RAD_2'
-    this.starthandleRequestJob(this.deltaTime);
+    if(this.init_device())
+    {
+      this.command_type = "VERSION"
+      this.write(commands.VERSION)
+      await this.sleep(5000);
+      if (this.payload.version === '') this.logger.error('[d] still not getting verion')
+  
+  
+      this.command_type = "VERSION_PROTOCOLE"
+      this.write(commands.VERSION_PROPTOCOLE)
+      await this.sleep(5000);
+      if (this.payload.version_protocole === '') this.logger.error('[d] still not getting protocole verion')
+  
+  
+      this.command_type = "SN"
+      this.logger.log('[d] still not getting SN  ... request now')
+      this.write(commands.SN)
+      await this.sleep(5000);
+      if (this.payload.sn === '') this.logger.error('[d] still not getting sn ... ')
+  
+      this.command_type = 'RAD_2'
+      this.starthandleRequestJob(this.deltaTime);
+    }
 
   }
 
@@ -126,15 +125,16 @@ export class SerialService implements OnModuleInit {
         );
         this.readerParser.on('data', this.onReaderData.bind(this));
         this.reader.on('close',this.onReaderClose.bind(this))
+        return true
       } catch (error) {
         console.log(error);
+        return false
       }
     }
   }
   write(data: Buffer) {
     try {
       this.reader.write(data);
-
     } catch (error) {
       this.logger.log("error writing")
     }
@@ -144,7 +144,7 @@ export class SerialService implements OnModuleInit {
     if(this.reader.isOpen())
     {
       this.logger.log("[d] sending RAD_2 COMMAND")
-      this.reader.write(commands.RAD_2);
+      this.write(commands.RAD_2);
     }
     else {
       this.logger.log("port is closed")
@@ -207,7 +207,7 @@ export class SerialService implements OnModuleInit {
         let util_data;
         let length = buffer[1] + buffer[2] + buffer[3] + buffer[4];
         length = parseInt(length.toString(), 16)
-        this.logger.log(buffer)
+        this.logger.log("buffer received",buffer)
         switch (this.command_type) {
           case 'RAD_2':
             if (length >= 40) {
