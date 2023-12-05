@@ -69,6 +69,8 @@ export class SerialService implements OnModuleInit {
       const checkPortInterval = setInterval(async () => {
         const portList = await SerialPort.list();
         for (let index = 0; index < portList.length; index++) {
+          this.logger.log(portList[index].vendorId )
+          this.logger.log(process.env.DEVICE_VID)
           if (portList[index].vendorId === process.env.DEVICE_VID && portList[index].productId === process.env.DEVUICE_PID) {
             this.logger.log("[d] Device finded Successfully")
             clearInterval(checkPortInterval)
