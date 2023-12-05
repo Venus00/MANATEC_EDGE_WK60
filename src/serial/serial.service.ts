@@ -6,12 +6,11 @@ import { EventService } from 'src/event/event.service';
 import { execSync } from 'child_process';
 import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
 import { commands } from './commands';
-import { Event } from './event.dto';
 import { DeltaService } from 'src/delta/delta.service';
 import { CronJob, CronTime } from 'cron';
 import { MqttService } from 'src/mqtt/mqtt.service';
 import { AlertService } from 'src/alert/alert.service';
-
+import * as os from 'os'
 interface State {
   created_at: Date
   version: String
@@ -186,21 +185,50 @@ export class SerialService implements OnModuleInit {
   }
 
   @Cron(CronExpression.EVERY_10_SECONDS)
-  checkALert() {
-    this.logger.log(new Date().getTime() - this.lastSent.getTime())
-    this.logger.log(this.deltaTime * 1000)
-    if (new Date().getTime() - this.lastSent.getTime() > this.deltaTime * 1000) {
-      if (this.mqtt.getConnectionState) {
-        const alert = {
-          name: 'device not sending data',
-          created_at: new Date()
+  async checkALert() {
+    try {
+      this.logger.log(new Date().getTime() - this.lastSent.getTime())
+      this.logger.log(this.deltaTime * 1000)
+      if (new Date().getTime() - this.lastSent.getTime() > this.deltaTime * 1000) {
+        let name;
+        if(this.reader.isOpen)
+          {
+              name = 'device not sending data';
+         
+          }
+          else {
+              name = 'device is disconnected';
+              
+          }
+        if (this.mqtt.getConnectionState) {
+          const alert = {
+            name,
+            created_at: new Date()
+          }
+          this.mqtt.publishAlert(JSON.stringify(alert))
         }
-        this.mqtt.publishAlert(JSON.stringify(alert))
+        else if (this.saveFlag) {
+          this.alert.create(name)
+        }
       }
-      else if (this.saveFlag) {
-        this.alert.create('[d] device not sending data')
+      if(!this.mqtt.getConnectionState())
+      {
+        //check if only wifi 
+        const wifiAddress = await os.networkInterfaces()['wlan0'][0].address
+        if(!wifiAddress)   
+        {
+          this.alert.create('wifi connection is lost')   
+        }
+        else 
+        {
+          this.alert.create('mqtt connection is lost')   
+        }
       }
+  
+    } catch (error) {
+      this.logger.error(error)
     }
+   
   }
 
   async onReaderClose(){
