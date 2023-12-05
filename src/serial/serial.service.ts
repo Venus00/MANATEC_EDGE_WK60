@@ -8,15 +8,15 @@ import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
 import { commands } from './commands';
 import { Event } from './event.dto';
 import { DeltaService } from 'src/delta/delta.service';
-import { CronJob,CronTime } from 'cron';
+import { CronJob, CronTime } from 'cron';
 import { MqttService } from 'src/mqtt/mqtt.service';
 import { AlertService } from 'src/alert/alert.service';
 
 interface State {
-  created_at:Date
-  version:String
-  version_protocole:String
-  sn:String
+  created_at: Date
+  version: String
+  version_protocole: String
+  sn: String
   total: String
   unit: String
   number_weightings: String
@@ -31,21 +31,18 @@ interface State {
 export class SerialService implements OnModuleInit {
   private reader;
   private readerParser;
+  private path:string;
   private readonly logger = new Logger(SerialService.name);
-  private RAD_2_RESPONSE_LENGTH = 40;
-  private VERSION_RESPONSE_lENGTH = 13;
-  private VERSION_PROTOCOLE_RESPONSE_LENGTH = 3;
-  private SN_RESPONSE_LENGTH = 2;
   private saveFlag = true;
-  private lastSent:Date = new Date();
+  private lastSent: Date = new Date();
   private job;
-  private deltaTime:number;
-  private command_type:string;
+  private deltaTime: number;
+  private command_type: string;
   private payload: State = {
-    created_at:new Date(),
-    version:'',
-    version_protocole:'',
-    sn:'',
+    created_at: new Date(),
+    version: '',
+    version_protocole: '',
+    sn: '',
     total: '',
     unit: '',
     number_weightings: '',
@@ -59,54 +56,78 @@ export class SerialService implements OnModuleInit {
   constructor(
     private event: EventService,
     private delta: DeltaService,
-    private alert:AlertService,
+    private alert: AlertService,
     private schedulerRegistry: SchedulerRegistry,
     @Inject(forwardRef(() => MqttService))
     private mqtt: MqttService,
   ) {
 
   }
+
+  checkDevice() {
+    return new Promise<string>((resolve, reject) => {
+      const checkPortInterval = setInterval(async () => {
+        const portList = await SerialPort.list();
+        for (let index = 0; index <= portList.length; index++) {
+          if (portList[index].vendorId === process.env.DEVICE_VID && portList[index].productId === process.env.DEVUICE_PID) {
+            clearInterval(checkPortInterval)
+            resolve(portList[index].path)
+          }
+        }
+      }, 5000)
+    })
+  }
+
   async onModuleInit() {
     this.logger.log("[d] init SERIAL MODULE");
-    await this.delta.createIfNotExist(1);
+    await this.delta.createIfNotExist(10);
     this.deltaTime = (await this.delta.get()).delta
-    try {
-      this.reader = new SerialPort({
-        path: '/dev/ttyUSB0',
-        baudRate: 9600,
-      });
-      //this.readerParser = new SerialPort({path:'/dev/ttyS0',baudRate:115200})
-      this.readerParser = this.reader.pipe(
-        new DelimiterParser({ delimiter: [0x03, 0x00, 0x00], includeDelimiter: false }),
-      );
-      this.readerParser.on('data', this.onReaderData.bind(this));
-    } catch (error) {
-      console.log(error);
-    }
 
-      this.command_type="VERSION"
-      this.write(commands.VERSION)
-      await this.sleep(10000);
-      if(this.payload.version === '') this.logger.error('[d] still not getting verion')
+    this.path = await this.checkDevice();
+    this.init_device();
 
-   
-      this.command_type="VERSION_PROTOCOLE"
-      this.write(commands.VERSION_PROPTOCOLE)
-      await this.sleep(10000);
-      if(this.payload.version_protocole === '') this.logger.error('[d] still not getting protocole verion')
 
-       
-      this.command_type="SN"
-      this.logger.log('[d] still not getting SN  ... request now')
-      this.write(commands.SN)
-      await this.sleep(10000);
-      if(this.payload.sn === '') this.logger.error('[d] still not getting sn ... ')
 
-      this.command_type='RAD_2'  
-      this.starthandleRequestJob(this.deltaTime);
-      
+    this.command_type = "VERSION"
+    this.write(commands.VERSION)
+    await this.sleep(5000);
+    if (this.payload.version === '') this.logger.error('[d] still not getting verion')
+
+
+    this.command_type = "VERSION_PROTOCOLE"
+    this.write(commands.VERSION_PROPTOCOLE)
+    await this.sleep(5000);
+    if (this.payload.version_protocole === '') this.logger.error('[d] still not getting protocole verion')
+
+
+    this.command_type = "SN"
+    this.logger.log('[d] still not getting SN  ... request now')
+    this.write(commands.SN)
+    await this.sleep(5000);
+    if (this.payload.sn === '') this.logger.error('[d] still not getting sn ... ')
+
+    this.command_type = 'RAD_2'
+    this.starthandleRequestJob(this.deltaTime);
+
   }
-  
+
+  init_device(){
+    if ( this.path !== undefined) {
+      try {
+        this.reader = new SerialPort({
+          path: this.path,
+          baudRate: 9600,
+        });
+        this.readerParser = this.reader.pipe(
+          new DelimiterParser({ delimiter: [0x03, 0x00, 0x00], includeDelimiter: false }),
+        );
+        this.readerParser.on('data', this.onReaderData.bind(this));
+        this.reader.on('close',this.onReaderClose.bind(this))
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  }
   write(data: Buffer) {
     try {
       this.reader.write(data);
@@ -117,14 +138,22 @@ export class SerialService implements OnModuleInit {
   }
 
   handleRequestJob() {
-    this.logger.log("[d] sending RAD_2 COMMAND")
-    this.reader.write(commands.RAD_2);
+    if(this.reader.isOpen())
+    {
+      this.logger.log("[d] sending RAD_2 COMMAND")
+      this.reader.write(commands.RAD_2);
+    }
+    else {
+      this.logger.log("port is closed")
+    }
   }
 
-  changehandleRequestJob(seconds) {
+  async changehandleRequestJob(seconds) {
     const job = this.schedulerRegistry.getCronJob('request');
     this.logger.log(seconds)
+    await this.delta.createIfNotExist(seconds);
     job.setTime(new CronTime(`*/${seconds} * * * * *`));
+
   }
   starthandleRequestJob(seconds: number) {
     this.logger.log("[d] create REQUEST RAD_2 JOB ")
@@ -147,24 +176,27 @@ export class SerialService implements OnModuleInit {
 
   @Cron(CronExpression.EVERY_10_SECONDS)
   checkALert() {
-    this.logger.log(new Date().getTime() -this.lastSent.getTime())
-    this.logger.log(this.deltaTime*1000)
-    if(new Date().getTime() -this.lastSent.getTime() > this.deltaTime*1000){
-      if(this.mqtt.getConnectionState) 
-      {
+    this.logger.log(new Date().getTime() - this.lastSent.getTime())
+    this.logger.log(this.deltaTime * 1000)
+    if (new Date().getTime() - this.lastSent.getTime() > this.deltaTime * 1000) {
+      if (this.mqtt.getConnectionState) {
         const alert = {
-          name:'device not sending data',
-          created_at:new Date()
+          name: 'device not sending data',
+          created_at: new Date()
         }
         this.mqtt.publishAlert(JSON.stringify(alert))
       }
-      else if (this.saveFlag)
-      {
+      else if (this.saveFlag) {
         this.alert.create('[d] device not sending data')
       }
     }
   }
 
+  async onReaderClose(){
+    this.logger.error("PORT CLOSED")
+    this.path = await this.checkDevice();
+    this.init_device();
+  }
   onReaderData(buffer: Buffer) {
     try {
       //this.logger.log(buffer)
@@ -175,8 +207,7 @@ export class SerialService implements OnModuleInit {
         this.logger.log(buffer)
         switch (this.command_type) {
           case 'RAD_2':
-            if(length>=40)
-            {
+            if (length >= 40) {
               this.logger.log('[d] rad2 type response')
               util_data = buffer.toString().substring(5, length + 1).split(';');
               this.payload.created_at = new Date();
@@ -191,13 +222,11 @@ export class SerialService implements OnModuleInit {
               this.payload.current_weight_loading = util_data[8];
               this.logger.log("result rad2: ", this.payload);
               this.lastSent = new Date();
-              if(this.mqtt.getConnectionState) 
-              {
+              if (this.mqtt.getConnectionState) {
                 this.logger.log("connection is good published")
                 this.mqtt.publishState(JSON.stringify(this.payload));
               }
-              else if (this.saveFlag)
-              {
+              else if (this.saveFlag) {
                 this.logger.log("save in database");
                 this.event.createEvent(this.payload)
               }
@@ -207,18 +236,18 @@ export class SerialService implements OnModuleInit {
             this.logger.log('[d] version type response')
             util_data = buffer.toString().substring(5, length + 1);
             this.payload.version = util_data;
-            this.logger.log("version : ",this.payload.version)
+            this.logger.log("version : ", this.payload.version)
             break;
           case 'VERSION_PROTOCOLE':
             this.logger.log('[d] version protcole type response')
-            util_data = buffer.toString().substring(5,length+1)
-            this.payload.version_protocole =buffer.toString().substring(5, length + 1);
-            this.logger.log("protocole version",this.payload.version_protocole)
+            util_data = buffer.toString().substring(5, length + 1)
+            this.payload.version_protocole = buffer.toString().substring(5, length + 1);
+            this.logger.log("protocole version", this.payload.version_protocole)
           case 'SN':
             this.logger.log('[d] sn type response')
-            util_data =buffer.toString().substring(5, length + 1) ;
+            util_data = buffer.toString().substring(5, length + 1);
             this.payload.sn = util_data;
-            this.logger.log("sn : ",this.payload.sn)
+            this.logger.log("sn : ", this.payload.sn)
           default:
             break;
         }
@@ -227,6 +256,5 @@ export class SerialService implements OnModuleInit {
       this.logger.error(error);
     }
   }
-
   sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 }
