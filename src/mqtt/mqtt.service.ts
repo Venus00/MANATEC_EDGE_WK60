@@ -92,7 +92,10 @@ export class MqttService {
           this.serial.write(Buffer.from(payload.command))
         }
         else if (payload.type==="DELTA"){
-          this.serial.changehandleRequestJob(payload.command.toString());
+          if(payload.command<150000 && payload.command>1)
+          {
+            this.serial.changehandleRequestJob(payload.command.toString());
+          }
         }
         else {
           this.logger.log('command not exist')
