@@ -161,7 +161,7 @@ export class SerialService implements OnModuleInit {
   async changehandleRequestJob(seconds) {
     const job = this.schedulerRegistry.getCronJob('request');
     this.logger.log(seconds)
-    await this.delta.createIfNotExist(seconds);
+    await this.delta.update(parseInt(seconds));
     job.setTime(new CronTime(`*/${seconds} * * * * *`));
 
   }
