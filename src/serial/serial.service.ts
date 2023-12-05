@@ -89,25 +89,6 @@ export class SerialService implements OnModuleInit {
     this.path = await this.checkDevice();
     if(this.init_device())
     {
-      this.command_type = "VERSION"
-      this.write(commands.VERSION)
-      await this.sleep(5000);
-      if (this.payload.version === '') this.logger.error('[d] still not getting verion')
-  
-  
-      this.command_type = "VERSION_PROTOCOLE"
-      this.write(commands.VERSION_PROPTOCOLE)
-      await this.sleep(5000);
-      if (this.payload.version_protocole === '') this.logger.error('[d] still not getting protocole verion')
-  
-  
-      this.command_type = "SN"
-      this.logger.log('[d] still not getting SN  ... request now')
-      this.write(commands.SN)
-      await this.sleep(5000);
-      if (this.payload.sn === '') this.logger.error('[d] still not getting sn ... ')
-  
-      this.command_type = 'RAD_2'
       this.starthandleRequestJob(this.deltaTime);
     }
 
@@ -140,9 +121,35 @@ export class SerialService implements OnModuleInit {
     }
   }
 
-  handleRequestJob() {
+  async handleRequestJob() {
     if(this.reader.isOpen)
     {
+      if (this.payload.version === '') 
+      {
+        this.command_type = "VERSION"
+        this.logger.error('[d] still not getting verion')
+        this.write(commands.VERSION)
+        await this.sleep(1000);
+      }
+  
+  
+      if (this.payload.version_protocole === '') 
+      {
+        this.command_type = "VERSION_PROTOCOLE"
+        this.logger.error('[d] still not getting protocole verion')
+        this.write(commands.VERSION_PROPTOCOLE)
+        await this.sleep(1000);
+      }
+    
+      if (this.payload.sn === '') 
+      {
+        this.command_type = "SN"
+        this.logger.error('[d] still not getting sn ... ')
+        this.write(commands.SN)
+        await this.sleep(1000);
+      }
+  
+      this.command_type = 'RAD_2'
       this.logger.log("[d] sending RAD_2 COMMAND")
       this.write(commands.RAD_2);
     }
