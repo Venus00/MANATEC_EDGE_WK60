@@ -141,7 +141,7 @@ export class SerialService implements OnModuleInit {
   }
 
   handleRequestJob() {
-    if(this.reader.isOpen())
+    if(this.reader.isOpen)
     {
       this.logger.log("[d] sending RAD_2 COMMAND")
       this.write(commands.RAD_2);
