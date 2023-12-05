@@ -70,6 +70,7 @@ export class SerialService implements OnModuleInit {
         const portList = await SerialPort.list();
         for (let index = 0; index < portList.length; index++) {
           if (portList[index].vendorId === process.env.DEVICE_VID && portList[index].productId === process.env.DEVUICE_PID) {
+            this.logger.log("[d] Device finded Successfully")
             clearInterval(checkPortInterval)
             resolve(portList[index].path)
           }
@@ -82,6 +83,8 @@ export class SerialService implements OnModuleInit {
     this.logger.log("[d] init SERIAL MODULE");
     await this.delta.createIfNotExist(10);
     this.deltaTime = (await this.delta.get()).delta
+
+    this.logger.log("[d] Start Search for Device ...")
 
     this.path = await this.checkDevice();
     this.init_device();
