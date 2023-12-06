@@ -100,7 +100,7 @@ export class SerialService implements OnModuleInit {
    // if ( this.path !== undefined) {
       try {
         this.reader = new SerialPort({
-          path: '/dev/ttyS1',
+          path: '/dev/ttyS0',
           baudRate: 9600,
         });
         this.readerParser = this.reader.pipe(
