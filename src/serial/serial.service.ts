@@ -192,12 +192,12 @@ export class SerialService implements OnModuleInit {
         let name;
         if(this.device_connected)
           {
-            this.logger.log('this .reader is connected')
+            this.logger.log('this reader is connected but not sending data')
               name = 'device not sending data';
          
           }
           else {
-            this.logger.log('this .reader is diconnected')
+            this.logger.log('this reader is diconnected')
 
               name = 'device is disconnected';
               
