@@ -90,6 +90,7 @@ export class SerialService implements OnModuleInit {
     this.path = await this.checkDevice();
     if(this.init_device())
     {
+      this.device_connected = true
       this.starthandleRequestJob(this.deltaTime);
     }
 
