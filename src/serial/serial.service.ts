@@ -75,6 +75,7 @@ export class SerialService implements OnModuleInit {
             resolve(portList[index].path)
           }
         }
+        this.checkALert();
       }, 5000)
     })
   }
