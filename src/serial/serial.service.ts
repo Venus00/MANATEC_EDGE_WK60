@@ -37,6 +37,7 @@ export class SerialService implements OnModuleInit {
   private job;
   private deltaTime: number;
   private command_type: string;
+  private device_connected = false;
   private payload: State = {
     created_at: new Date(),
     version: '',
@@ -189,12 +190,15 @@ export class SerialService implements OnModuleInit {
     try {
       if (new Date().getTime() - this.lastSent.getTime() > this.deltaTime * 1000) {
         let name;
-        if(this.reader.isOpen)
+        if(this.device_connected)
           {
+            this.logger.log('this .reader is connected')
               name = 'device not sending data';
          
           }
           else {
+            this.logger.log('this .reader is diconnected')
+
               name = 'device is disconnected';
               
           }
@@ -230,9 +234,10 @@ export class SerialService implements OnModuleInit {
   }
 
   async onReaderClose(){
+    this.device_connected = false;
     this.logger.error("PORT CLOSED")
     this.path = await this.checkDevice();
-    this.init_device();
+    if(this.init_device()) this.device_connected = true;
   }
   onReaderData(buffer: Buffer) {
     try {
