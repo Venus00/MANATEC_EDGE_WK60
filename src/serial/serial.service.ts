@@ -87,7 +87,7 @@ export class SerialService implements OnModuleInit {
 
     this.logger.log("[d] Start Search for Device ...")
 
-    this.path = await this.checkDevice();
+    //this.path = await this.checkDevice();
     if(this.init_device())
     {
       this.device_connected = true
@@ -97,10 +97,10 @@ export class SerialService implements OnModuleInit {
   }
 
   init_device(){
-    if ( this.path !== undefined) {
+   // if ( this.path !== undefined) {
       try {
         this.reader = new SerialPort({
-          path: this.path,
+          path: '/dev/ttyS1',
           baudRate: 9600,
         });
         this.readerParser = this.reader.pipe(
@@ -113,7 +113,7 @@ export class SerialService implements OnModuleInit {
         console.log(error);
         return false
       }
-    }
+    //}
   }
   write(data: Buffer) {
     try {
@@ -239,7 +239,7 @@ export class SerialService implements OnModuleInit {
     this.device_connected = false;
     this.logger.error("PORT CLOSED")
     this.path = await this.checkDevice();
-    if(this.init_device()) this.device_connected = true;
+   // if(this.init_device()) this.device_connected = true;
   }
   onReaderData(buffer: Buffer) {
     try {
