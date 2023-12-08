@@ -82,7 +82,7 @@ export class SerialService implements OnModuleInit {
 
   async onModuleInit() {
     this.logger.log("[d] init SERIAL MODULE");
-    await this.delta.createIfNotExist(10);
+    await this.delta.createIfNotExist(20);
     this.deltaTime = (await this.delta.get()).delta
 
     this.logger.log("[d] Start Search for Device ...")
