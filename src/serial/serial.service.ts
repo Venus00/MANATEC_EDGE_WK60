@@ -85,7 +85,7 @@ export class SerialService implements OnModuleInit {
     await this.delta.createIfNotExist(20);
     this.deltaTime = (await this.delta.get()).delta
 
-    this.logger.log("[d] Start Search for Device ...")
+    this.logger.log("[d] init connection with Device ...")
 
     //this.path = await this.checkDevice();
     if(this.init_device())
