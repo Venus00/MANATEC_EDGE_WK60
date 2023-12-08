@@ -9,7 +9,7 @@ import { AlertService } from 'src/alert/alert.service';
 @Injectable()
 export class MqttService {
   private client: mqtt.MqttClient;
-  private isConnected:boolean = false;
+  private isConnected:boolean;
   private logger = new Logger(MqttService.name)
   private TOPIC_SUBSCRIBE = process.env.TOPIC_SUBSCRIBE.replace('+',getMAC('wlan0').replaceAll(':',''))
   private TOPIC_PUBLISH_STATE = process.env.TOPIC_PUBLISH.replace('+',getMAC('wlan0').replaceAll(':',''))
@@ -21,6 +21,8 @@ export class MqttService {
     @Inject(forwardRef(() => SerialService))
     private serial:SerialService
   ) {
+
+    this.isConnected = false;
     this.logger.log(process.env.MQTT_SERVER)
     this.client = mqtt.connect(`mqtt://${process.env.MQTT_SERVER}}`);
     this.client.on('connect', this.onConnect.bind(this));
