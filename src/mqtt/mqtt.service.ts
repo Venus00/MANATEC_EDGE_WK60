@@ -59,16 +59,19 @@ export class MqttService {
         if (events[i].isSent == false)
         {
             this.publishState(JSON.stringify(events[i]));
-            this.event.delete(events[i].id)
+            await this.event.delete(events[i].id)
         }
       }
       const alerts = await this.alert.getAll();
       for (let i=0;i<alerts.length;i++)
       {
-        if (alerts[i].isSent == false)
+        if (alerts[i].isSent === false)
         {
+            this.logger.log("[d] alert not sent .. sending now ...")
             this.publishAlert(JSON.stringify(alerts[i].name));
-            this.alert.delete(alerts[i].id)
+            this.logger.log("[d] delete alert")
+
+            await this.alert.delete(alerts[i].id)
         }
       }
     }
