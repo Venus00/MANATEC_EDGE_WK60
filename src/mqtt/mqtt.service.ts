@@ -49,8 +49,9 @@ export class MqttService {
     return this.isConnected;
   }
 
-  @Cron('*/60 * * * * *')
+  @Cron('*/5 * * * * *')
   async senderJob() {
+    this.logger.log('connection state',this.isConnected)
     if(this.isConnected) {
       this.logger.log('mqtt server is Connected ');
       const events = await this.event.events();
@@ -78,7 +79,7 @@ export class MqttService {
       }
     }
     else {
-      this.logger.log('mqtt server is not connected connot send ... ');
+      this.logger.log('mqtt server is not connected connot sending ... ');
     }
   }
 
