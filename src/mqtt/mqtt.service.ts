@@ -22,7 +22,11 @@ export class MqttService {
   ) {
 
     this.logger.log(process.env.MQTT_SERVER)
-    this.client = mqtt.connect(`mqtt://${process.env.MQTT_SERVER}}`);
+    this.client = mqtt.connect(`mqtt://${process.env.MQTT_SERVER}}`,{
+      clientId:process.env.TOPIC_SUBSCRIBE.replace('+',getMAC('wlan0').replaceAll(':','')),
+      username:process.env.TOPIC_SUBSCRIBE.replace('+',getMAC('wlan0').replaceAll(':','')),
+      password:process.env.TOPIC_SUBSCRIBE.replace('+',getMAC('wlan0').replaceAll(':','')),
+    });
     this.client.on('connect', this.onConnect.bind(this));
     this.client.on('message', this.onMessage.bind(this));
     this.client.on('disconnect',this.onDisconnect.bind(this));
@@ -49,16 +53,15 @@ export class MqttService {
     return this.client.connected;
   }
 
-  @Cron('*/5 * * * * *')
+  @Cron('*/60 * * * * *')
   async senderJob() {
     
-    this.logger.log('connection state',this.client.connected)
     if(this.client.connected) {
       this.logger.log('mqtt server is Connected ');
       const events = await this.event.events();
       for (let i=0;i<events.length;i++)
       {
-        if (events[i].isSent == false)
+        if (events[i].isSent === false)
         {
             this.publishState(JSON.stringify(events[i]));
             await this.event.delete(events[i].id)
