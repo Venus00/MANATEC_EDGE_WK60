@@ -63,6 +63,8 @@ export class MqttService {
         }
       }
       const alerts = await this.alert.getAll();
+      
+      this.logger.log("alert from db",alerts)
       for (let i=0;i<alerts.length;i++)
       {
         if (alerts[i].isSent === false)
