@@ -33,12 +33,10 @@ export class MqttService {
   }
 
   onConnect() {
-    this.client.connected = true;
     this.logger.log('mqtt server is connected');
     this.client.subscribe(this.TOPIC_SUBSCRIBE);
   }
   onDisconnect() {
-    this.client.connected = false;
     this.logger.error("mqtt server is disconnected")
   }
   publishState(message:string){
