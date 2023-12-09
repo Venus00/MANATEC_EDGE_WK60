@@ -140,7 +140,7 @@ export class SerialService implements OnModuleInit {
         this.command_type = "VERSION_PROTOCOLE"
         this.logger.error('[d] still not getting protocole verion')
         this.write(commands.VERSION_PROPTOCOLE)
-        await this.sleep(1000);
+        await this.sleep(2000);
       }
     
       if (this.payload.sn === '') 
@@ -148,7 +148,7 @@ export class SerialService implements OnModuleInit {
         this.command_type = "SN"
         this.logger.error('[d] still not getting sn ... ')
         this.write(commands.SN)
-        await this.sleep(1000);
+        await this.sleep(2000);
       }
   
       this.command_type = 'RAD_2'
@@ -284,8 +284,8 @@ export class SerialService implements OnModuleInit {
             break;
           case 'VERSION_PROTOCOLE':
             this.logger.log('[d] version protcole type response')
-            util_data = buffer.toString().substring(5, length + 1)
-            this.payload.version_protocole = buffer.toString().substring(5, length + 1);
+            util_data = buffer.toString().substring(5, length + 1);
+            this.payload.version_protocole = util_data;
             this.logger.log("protocole version", this.payload.version_protocole)
           case 'SN':
             this.logger.log('[d] sn type response')

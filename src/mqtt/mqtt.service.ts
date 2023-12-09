@@ -27,27 +27,23 @@ export class MqttService {
       clientId:getMAC('wlan0').replaceAll(':',''),
       username:getMAC('wlan0').replaceAll(':',''),
       password:getMAC('wlan0').replaceAll(':',''),
-      reconnectPeriod:10000
       
     });
     this.client.on('connect', this.onConnect.bind(this));
     this.client.on('message', this.onMessage.bind(this));
-    this.client.on('close', this.onDisconnect.bind(this));
     this.client.on('disconnect',this.onDisconnect.bind(this));
 
     setInterval(()=>{
       this.senderJob();
-    },10*1000)
+    },60*1000)
   }
 
   onConnect() {
-    this.isConnected = true;
     this.logger.log('mqtt server is connected');
     this.client.subscribe(this.TOPIC_SUBSCRIBE);
   }
   onDisconnect() {
     this.logger.error("mqtt server is disconnected")
-    this.isConnected = false;
   }
   publishState(message:string){
     this.logger.log(this.TOPIC_PUBLISH_STATE)
@@ -62,7 +58,7 @@ export class MqttService {
   }
 
   async senderJob() {
-    if(this.isConnected) {
+    if(this.client.connected) {
       this.logger.log('mqtt server is Connected ');
       const events = await this.event.events();
       for (let i=0;i<events.length;i++)
