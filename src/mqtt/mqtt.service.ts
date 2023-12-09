@@ -37,7 +37,7 @@ export class MqttService {
 
     setInterval(()=>{
       this.senderJob();
-    },60*1000*1000)
+    },6*1000)
   }
 
   onConnect() {
