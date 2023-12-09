@@ -9,6 +9,7 @@ import { AlertService } from 'src/alert/alert.service';
 @Injectable()
 export class MqttService {
   private client: mqtt.MqttClient;
+  private isConnected:boolean = false;
   private logger = new Logger(MqttService.name)
   private TOPIC_SUBSCRIBE = process.env.TOPIC_SUBSCRIBE.replace('+',getMAC('wlan0').replaceAll(':',''))
   private TOPIC_PUBLISH_STATE = process.env.TOPIC_PUBLISH.replace('+',getMAC('wlan0').replaceAll(':',''))
@@ -26,18 +27,24 @@ export class MqttService {
       clientId:getMAC('wlan0').replaceAll(':',''),
       username:getMAC('wlan0').replaceAll(':',''),
       password:getMAC('wlan0').replaceAll(':',''),
+      
     });
     this.client.on('connect', this.onConnect.bind(this));
     this.client.on('message', this.onMessage.bind(this));
+    this.client.on('close', this.onDisconnect.bind(this));
+    this.client.on('error', this.onDisconnect.bind(this));
     this.client.on('disconnect',this.onDisconnect.bind(this));
   }
 
   onConnect() {
     this.logger.log('mqtt server is connected');
     this.client.subscribe(this.TOPIC_SUBSCRIBE);
+    this.isConnected = true;
   }
   onDisconnect() {
     this.logger.error("mqtt server is disconnected")
+    this.client.reconnect();
+    this.isConnected = false;
   }
   publishState(message:string){
     this.logger.log(this.TOPIC_PUBLISH_STATE)
@@ -48,13 +55,13 @@ export class MqttService {
     this.client.publish(this.TOPIC_PUBLISH_ALERTE,message);
   }
   getConnectionState() {
-    return this.client.connected;
+    return this.isConnected;
   }
 
   @Cron('*/60 * * * * *')
   async senderJob() {
     
-    if(this.client.connected) {
+    if(this.isConnected) {
       this.logger.log('mqtt server is Connected ');
       const events = await this.event.events();
       for (let i=0;i<events.length;i++)
