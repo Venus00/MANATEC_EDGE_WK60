@@ -27,6 +27,7 @@ export class MqttService {
       clientId:getMAC('wlan0').replaceAll(':',''),
       username:getMAC('wlan0').replaceAll(':',''),
       password:getMAC('wlan0').replaceAll(':',''),
+      reconnectPeriod:10000
       
     });
     this.client.on('connect', this.onConnect.bind(this));
@@ -47,7 +48,6 @@ export class MqttService {
   }
   onDisconnect() {
     this.logger.error("mqtt server is disconnected")
-    this.client.reconnect();
     this.isConnected = false;
   }
   publishState(message:string){
