@@ -34,6 +34,10 @@ export class MqttService {
     this.client.on('close', this.onDisconnect.bind(this));
     this.client.on('error', this.onDisconnect.bind(this));
     this.client.on('disconnect',this.onDisconnect.bind(this));
+
+    setInterval(()=>{
+      this.senderJob();
+    },60*1000*1000)
   }
 
   onConnect() {
@@ -58,9 +62,7 @@ export class MqttService {
     return this.isConnected;
   }
 
-  @Cron('*/60 * * * * *')
   async senderJob() {
-    
     if(this.isConnected) {
       this.logger.log('mqtt server is Connected ');
       const events = await this.event.events();
