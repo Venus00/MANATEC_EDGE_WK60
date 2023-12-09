@@ -75,7 +75,7 @@ export class MqttService {
         if (alerts[i].isSent === false)
         {
             this.logger.log("[d] alert not sent .. sending now ...")
-            this.publishAlert(JSON.stringify(alerts[i].name));
+            this.publishAlert(JSON.stringify(alerts[i]));
             this.logger.log("[d] delete alert")
 
             await this.alert.delete(alerts[i].id)
