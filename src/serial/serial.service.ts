@@ -12,7 +12,7 @@ import { CronJob, CronTime } from 'cron';
 import { MqttService } from 'src/mqtt/mqtt.service';
 import { AlertService } from 'src/alert/alert.service';
 import * as os from 'os'
-import { PAYLOAD,STATUS } from './data.dto';
+import { PAYLOAD, STATUS } from './data.dto';
 import { ShutService } from 'src/delta/shut.service';
 import getMAC, { isMAC } from 'getmac';
 
@@ -25,15 +25,15 @@ export class SerialService implements OnModuleInit {
   private lastSent: Date = new Date();
   private job;
   private command_type: string;
-  private status:STATUS = {
-    storage:'',
-    total_alert:0,
-    total_event:0,
-    delta_time:0,
-    last_log_date:undefined,
-    ip:'',
-    mac:'',
-    shutdown_counter:0,
+  private status: STATUS = {
+    storage: '',
+    total_alert: 0,
+    total_event: 0,
+    delta_time: 0,
+    last_log_date: undefined,
+    ip: '',
+    mac: '',
+    shutdown_counter: 0,
   }
   private payload: PAYLOAD = {
     created_at: new Date(),
@@ -55,7 +55,7 @@ export class SerialService implements OnModuleInit {
     private delta: DeltaService,
     private alert: AlertService,
     private schedulerRegistry: SchedulerRegistry,
-    private shutService:ShutService,
+    private shutService: ShutService,
     @Inject(forwardRef(() => MqttService))
     private mqtt: MqttService,
   ) {
@@ -91,29 +91,28 @@ export class SerialService implements OnModuleInit {
 
 
     this.logger.log("[d] init connection with Device ...")
-    if(this.init_device())
-    {
+    if (this.init_device()) {
       this.starthandleRequestJob(this.status.delta_time);
     }
 
   }
 
-  init_device(){
-      try {
-        this.reader = new SerialPort({
-          path: '/dev/ttyS0',
-          baudRate: 9600,
-        });
-        this.readerParser = this.reader.pipe(
-          new DelimiterParser({ delimiter: [0x03, 0x00, 0x00], includeDelimiter: false }),
-        );
-        this.readerParser.on('data', this.onReaderData.bind(this));
-        this.reader.on('close',this.onReaderClose.bind(this))
-        return true
-      } catch (error) {
-        console.log(error);
-        return false
-      }
+  init_device() {
+    try {
+      this.reader = new SerialPort({
+        path: '/dev/ttyS0',
+        baudRate: 9600,
+      });
+      this.readerParser = this.reader.pipe(
+        new DelimiterParser({ delimiter: [0x03, 0x00, 0x00], includeDelimiter: false }),
+      );
+      this.readerParser.on('data', this.onReaderData.bind(this));
+      this.reader.on('close', this.onReaderClose.bind(this))
+      return true
+    } catch (error) {
+      console.log(error);
+      return false
+    }
   }
   write(data: Buffer) {
     try {
@@ -124,33 +123,29 @@ export class SerialService implements OnModuleInit {
   }
 
   async handleRequestJob() {
-    if(this.reader.isOpen)
-    {
-      if (this.payload.version === '') 
-      {
+    if (this.reader.isOpen) {
+      if (this.payload.version === '') {
         this.command_type = "VERSION"
         this.logger.error('[d] still not getting verion')
         this.write(commands.VERSION)
         await this.sleep(5000);
       }
-  
-  
-      if (this.payload.version_protocole === '') 
-      {
+
+
+      if (this.payload.version_protocole === '') {
         this.command_type = "VERSION_PROTOCOLE"
         this.logger.error('[d] still not getting protocole verion')
         this.write(commands.VERSION_PROPTOCOLE)
         await this.sleep(5000);
       }
-    
-      if (this.payload.sn === '') 
-      {
+
+      if (this.payload.sn === '') {
         this.command_type = "SN"
         this.logger.error('[d] still not getting sn ... ')
         this.write(commands.SN)
         await this.sleep(5000);
       }
-  
+
       this.command_type = 'RAD_2'
       this.logger.log("[d] sending RAD_2 COMMAND")
       this.write(commands.RAD_2);
@@ -177,13 +172,12 @@ export class SerialService implements OnModuleInit {
 
   @Cron(CronExpression.EVERY_10_SECONDS)
   async Status() {
-    if(this.mqtt.getConnectionState())
-    {
+    if (this.mqtt.getConnectionState()) {
       this.status.total_alert = this.mqtt.getTotalAlert();
       this.status.total_event = this.mqtt.getTotalEvent();
       this.status.ip = await os.networkInterfaces()['wlan0'][0].address
       this.status.mac = getMAC('wlan0').replaceAll(':', '')
-    
+
     }
   }
 
@@ -195,6 +189,7 @@ export class SerialService implements OnModuleInit {
     const typeKB = storage.includes('K');
     const sizeValue = +storage.replace(/[GMK]/gi, '');
     if (typeKB && sizeValue < 300) {
+
       this.saveFlag = false;
     }
     else {
@@ -221,31 +216,36 @@ export class SerialService implements OnModuleInit {
           })
         }
       }
-      if(!this.mqtt.getConnectionState())
-      {
-        //check if only wifi 
-        const wifiAddress = await os.networkInterfaces()['wlan0'][0].address
-        if(!wifiAddress)   
-        {
-          this.alert.create({
-            ...Alert.WIFI
-          })   
-        }
-        else 
-        {
-          this.alert.create({
-            ...Alert.MQTT
-          })   
+
+      if (!this.saveFlag) {
+        this.mqtt.publishAlert(JSON.stringify({
+          ...Alert.STORAGE,
+          created_at: new Date(),
+        }))
+      }
+      else {
+        if (!this.mqtt.getConnectionState()) {
+          //check if only wifi 
+          const wifiAddress = await os.networkInterfaces()['wlan0'][0].address
+          if (!wifiAddress) {
+            this.alert.create({
+              ...Alert.WIFI
+            })
+          }
+          else {
+            this.alert.create({
+              ...Alert.MQTT
+            })
+          }
         }
       }
-  
     } catch (error) {
       this.logger.error(error)
     }
-   
+
   }
 
-  async onReaderClose(){
+  async onReaderClose() {
     this.logger.error("PORT CLOSED")
   }
   onReaderData(buffer: Buffer) {
@@ -255,7 +255,7 @@ export class SerialService implements OnModuleInit {
         let util_data;
         let length = buffer[1] + buffer[2] + buffer[3] + buffer[4];
         length = parseInt(length.toString(), 16)
-        this.logger.log("buffer received",buffer)
+        this.logger.log("buffer received", buffer)
         switch (this.command_type) {
           case 'RAD_2':
             if (length >= 40) {

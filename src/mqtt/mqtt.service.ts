@@ -9,7 +9,6 @@ import { AlertService } from 'src/alert/alert.service';
 @Injectable()
 export class MqttService {
   private client: mqtt.MqttClient;
-  private isConnected: boolean;
   private logger = new Logger(MqttService.name)
   private mac: string = getMAC('wlan0').replaceAll(':', '')
   private TOPIC_SUBSCRIBE = process.env.TOPIC_SUBSCRIBE.replace('+', this.mac)
