@@ -24,17 +24,5 @@ export class EventService {
     })
   }
 
-  async updateEvent(param:any){
-    return this.prisma.event.update({
-      where:{
-        id:param.id
-      },
-      data:{
-        isSent:param.isSent
-      }
-    })
-  }
-
-
 
 }
