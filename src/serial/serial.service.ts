@@ -177,7 +177,7 @@ export class SerialService implements OnModuleInit {
       this.status.total_event = this.mqtt.getTotalEvent();
       this.status.ip = await os.networkInterfaces()['wlan0'][0].address
       this.status.mac = getMAC('wlan0').replaceAll(':', '')
-
+      this.mqtt.publishStatus(JSON.stringify(this.status))
     }
   }
 
