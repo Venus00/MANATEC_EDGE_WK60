@@ -87,7 +87,7 @@ export class SerialService implements OnModuleInit {
     this.status.shutdown_counter = (await this.shutService.get()).count
     this.shutService.update(this.status.shutdown_counter++)
 
-    this.status.storage = execSync(`df -h /data | awk 'NR==2 {print $4}'`).toString();
+    this.status.storage = execSync(`df -h /data | awk 'NR==2 {print $4}'`).toString().replace(/\n/g, '');
 
 
     this.logger.log("[d] init connection with Device ...")
@@ -185,7 +185,7 @@ export class SerialService implements OnModuleInit {
   @Cron(CronExpression.EVERY_10_MINUTES)
   handleCron() {
     const storage = execSync(`df -h /data | awk 'NR==2 {print $4}'`).toString();
-    this.status.storage = storage;
+    this.status.storage = storage.replace(/\n/g, '');
     const typeKB = storage.includes('K');
     const sizeValue = +storage.replace(/[GMK]/gi, '');
     if (typeKB && sizeValue < 300) {
