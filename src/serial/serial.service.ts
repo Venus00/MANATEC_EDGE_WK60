@@ -6,39 +6,36 @@ import { EventService } from 'src/event/event.service';
 import { execSync } from 'child_process';
 import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
 import { commands } from './commands';
+import { Alert } from '../alert/alert';
 import { DeltaService } from 'src/delta/delta.service';
 import { CronJob, CronTime } from 'cron';
 import { MqttService } from 'src/mqtt/mqtt.service';
 import { AlertService } from 'src/alert/alert.service';
 import * as os from 'os'
-interface State {
-  created_at: Date
-  version: String
-  version_protocole: String
-  sn: String
-  total: String
-  unit: String
-  number_weightings: String
-  voucher_number: String
-  status: String
-  weight_last_stroke: String
-  date_last_stroke: String
-  time_last_stroke: String
-  current_weight_loading: String
-}
+import { PAYLOAD,STATUS } from './data.dto';
+import { ShutService } from 'src/delta/shut.service';
+import getMAC, { isMAC } from 'getmac';
+
 @Injectable()
 export class SerialService implements OnModuleInit {
   private reader;
   private readerParser;
-  private path:string;
   private readonly logger = new Logger(SerialService.name);
   private saveFlag = true;
   private lastSent: Date = new Date();
   private job;
-  private deltaTime: number;
   private command_type: string;
-  private device_connected = false;
-  private payload: State = {
+  private status:STATUS = {
+    storage:'',
+    total_alert:0,
+    total_event:0,
+    delta_time:0,
+    last_log_date:undefined,
+    ip:'',
+    mac:'',
+    shutdown_counter:0,
+  }
+  private payload: PAYLOAD = {
     created_at: new Date(),
     version: '',
     version_protocole: '',
@@ -58,46 +55,50 @@ export class SerialService implements OnModuleInit {
     private delta: DeltaService,
     private alert: AlertService,
     private schedulerRegistry: SchedulerRegistry,
+    private shutService:ShutService,
     @Inject(forwardRef(() => MqttService))
     private mqtt: MqttService,
   ) {
 
   }
 
-  checkDevice() {
-    return new Promise<string>((resolve, reject) => {
-      const checkPortInterval = setInterval(async () => {
-        const portList = await SerialPort.list();
-        for (let index = 0; index < portList.length; index++) {
-          if (portList[index].vendorId === process.env.DEVICE_VID && portList[index].productId === process.env.DEVICE_PID) {
-            this.logger.log("[d] Device finded Successfully")
-            clearInterval(checkPortInterval)
-            resolve(portList[index].path)
-          }
-        }
-        this.checkALert();
-      }, 5000)
-    })
-  }
+  // checkDevice() {
+  //   return new Promise<string>((resolve, reject) => {
+  //     const checkPortInterval = setInterval(async () => {
+  //       const portList = await SerialPort.list();
+  //       for (let index = 0; index < portList.length; index++) {
+  //         if (portList[index].vendorId === process.env.DEVICE_VID && portList[index].productId === process.env.DEVICE_PID) {
+  //           this.logger.log("[d] Device finded Successfully")
+  //           clearInterval(checkPortInterval)
+  //           resolve(portList[index].path)
+  //         }
+  //       }
+  //       this.checkALert();
+  //     }, 5000)
+  //   })
+  // }
 
   async onModuleInit() {
     this.logger.log("[d] init SERIAL MODULE");
     await this.delta.createIfNotExist(20);
-    this.deltaTime = (await this.delta.get()).delta
+    this.status.delta_time = (await this.delta.get()).delta
+
+    await this.shutService.createIfNotExist(0);
+    this.status.shutdown_counter = (await this.shutService.get()).count
+    this.shutService.update(this.status.shutdown_counter++)
+
+    this.status.storage = execSync(`df -h /data | awk 'NR==2 {print $4}'`).toString();
+
 
     this.logger.log("[d] init connection with Device ...")
-
-    //this.path = await this.checkDevice();
     if(this.init_device())
     {
-      this.device_connected = true
-      this.starthandleRequestJob(this.deltaTime);
+      this.starthandleRequestJob(this.status.delta_time);
     }
 
   }
 
   init_device(){
-   // if ( this.path !== undefined) {
       try {
         this.reader = new SerialPort({
           path: '/dev/ttyS0',
@@ -113,7 +114,6 @@ export class SerialService implements OnModuleInit {
         console.log(error);
         return false
       }
-    //}
   }
   write(data: Buffer) {
     try {
@@ -163,7 +163,7 @@ export class SerialService implements OnModuleInit {
   async changehandleRequestJob(seconds) {
     const job = this.schedulerRegistry.getCronJob('request');
     this.logger.log(seconds)
-    this.deltaTime = parseInt(seconds);
+    this.status.delta_time = parseInt(seconds);
     await this.delta.update(parseInt(seconds));
     job.setTime(new CronTime(`*/${seconds} * * * * *`));
 
@@ -174,9 +174,24 @@ export class SerialService implements OnModuleInit {
     this.schedulerRegistry.addCronJob('request', this.job);
     this.job.start();
   }
-  @Cron(CronExpression.EVERY_30_MINUTES)
+
+  @Cron(CronExpression.EVERY_10_SECONDS)
+  async Status() {
+    if(this.mqtt.getConnectionState())
+    {
+      this.status.total_alert = this.mqtt.getTotalAlert();
+      this.status.total_event = this.mqtt.getTotalEvent();
+      this.status.ip = await os.networkInterfaces()['wlan0'][0].address
+      this.status.mac = getMAC('wlan0').replaceAll(':', '')
+    
+    }
+  }
+
+
+  @Cron(CronExpression.EVERY_10_MINUTES)
   handleCron() {
     const storage = execSync(`df -h /data | awk 'NR==2 {print $4}'`).toString();
+    this.status.storage = storage;
     const typeKB = storage.includes('K');
     const sizeValue = +storage.replace(/[GMK]/gi, '');
     if (typeKB && sizeValue < 300) {
@@ -187,32 +202,23 @@ export class SerialService implements OnModuleInit {
     }
   }
 
-  @Cron(CronExpression.EVERY_10_SECONDS)
+  @Cron(CronExpression.EVERY_30_SECONDS)
   async checkALert() {
     try {
-      if (new Date().getTime() - this.lastSent.getTime() > this.deltaTime * 1000) {
-        let name;
-        if(this.device_connected)
-          {
-            this.logger.log('this reader is connected but not sending data')
-              name = 'device not sending data';
-         
-          }
-          else {
-            this.logger.log('this reader is diconnected')
+      if (new Date().getTime() - this.lastSent.getTime() > this.status.delta_time * 1000) {
 
-              name = 'device is disconnected';
-              
-          }
+        this.logger.log('this reader is connected but not sending data')
         if (this.mqtt.getConnectionState) {
-          const alert = {
-            name,
+          this.mqtt.publishAlert(JSON.stringify({
+            ...Alert.DEVICE,
             created_at: new Date()
-          }
-          this.mqtt.publishAlert(JSON.stringify(alert))
+          }))
         }
         else if (this.saveFlag) {
-          this.alert.create(name)
+          this.status.last_log_date = new Date();
+          this.alert.create({
+            ...Alert.DEVICE,
+          })
         }
       }
       if(!this.mqtt.getConnectionState())
@@ -221,11 +227,15 @@ export class SerialService implements OnModuleInit {
         const wifiAddress = await os.networkInterfaces()['wlan0'][0].address
         if(!wifiAddress)   
         {
-          this.alert.create('wifi connection is lost')   
+          this.alert.create({
+            ...Alert.WIFI
+          })   
         }
         else 
         {
-          this.alert.create('mqtt connection is lost')   
+          this.alert.create({
+            ...Alert.MQTT
+          })   
         }
       }
   
@@ -236,10 +246,7 @@ export class SerialService implements OnModuleInit {
   }
 
   async onReaderClose(){
-    this.device_connected = false;
     this.logger.error("PORT CLOSED")
-    this.path = await this.checkDevice();
-   // if(this.init_device()) this.device_connected = true;
   }
   onReaderData(buffer: Buffer) {
     try {
@@ -268,10 +275,12 @@ export class SerialService implements OnModuleInit {
               this.lastSent = new Date();
               if (this.mqtt.getConnectionState) {
                 this.logger.log("connection is good published")
-                this.mqtt.publishState(JSON.stringify(this.payload));
+                this.mqtt.publishPayload(JSON.stringify(this.payload));
+
               }
               else if (this.saveFlag) {
                 this.logger.log("save in database");
+                this.status.last_log_date = new Date();
                 this.event.createEvent(this.payload)
               }
             }
