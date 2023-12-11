@@ -28,20 +28,18 @@ export class MqttService {
       clientId: this.mac,
       username: this.mac,
       password: this.mac,
-
+      keepalive:1,
+      reconnectPeriod:1
     });
     this.client.on('connect', this.onConnect.bind(this));
     this.client.on('message', this.onMessage.bind(this));
     this.client.on('disconnect', this.onDisconnect.bind(this));
-
-    setInterval(() => {
-      this.senderJob();
-    }, 60 * 1000)
   }
 
   onConnect() {
     this.logger.log('mqtt server is connected');
     this.client.subscribe(this.TOPIC_SUBSCRIBE);
+    this.senderJob();
   }
   onDisconnect() {
     this.logger.error("mqtt server is disconnected")
@@ -77,10 +75,16 @@ export class MqttService {
       }
       for (let i = 0; i < events.length; i++) {
 
-        this.publishPayload(JSON.stringify(events[i]));
-        this.logger.log("[d] delete event")
-        await this.event.delete(events[i].id)
-
+        if(this.client.connected)
+        {
+          this.publishPayload(JSON.stringify(events[i]));
+          this.logger.log("[d] delete event")
+          await this.event.delete(events[i].id)
+        }
+        else {
+          this.logger.error('[d] BROKERR MQTT CONNECTION IS LOST')
+          return ;
+        }
       }
       const alerts = await this.alert.getAll();
       this.logger.log("alert from db", alerts);
@@ -89,13 +93,20 @@ export class MqttService {
         this.total_alert = alerts.length;
       }
       for (let i = 0; i < alerts.length; i++) {
-        this.publishAlert(JSON.stringify(alerts[i]));
-        this.logger.log("[d] delete alert")
-        await this.alert.delete(alerts[i].id)
+        if (this.client.connected)
+        {
+          this.publishAlert(JSON.stringify(alerts[i]));
+          this.logger.log("[d] delete alert")
+          await this.alert.delete(alerts[i].id)
+        }
+        else {
+          this.logger.error('[d] BROKERR MQTT CONNECTION IS LOST')
+          return;
+        }
       }
     }
     else {
-      this.logger.log('mqtt server is not connected connot sending ... ');
+      this.logger.error('[d] mqtt server is not connected connot sending ... ');
     }
   }
 
