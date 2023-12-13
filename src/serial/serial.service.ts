@@ -225,7 +225,7 @@ export class SerialService implements OnModuleInit {
       else {
         if (!this.mqtt.getConnectionState()) {
           //check if only wifi 
-          const wifiAddress = await os.networkInterfaces()['wlan0'][0].address
+          const wifiAddress = os.networkInterfaces()['wlan0'][0].address
           if (!wifiAddress) {
             this.alert.create({
               ...Alert.WIFI

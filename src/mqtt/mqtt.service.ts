@@ -6,6 +6,7 @@ import { SerialService } from 'src/serial/serial.service';
 import { commands } from 'src/serial/commands';
 import getMAC, { isMAC } from 'getmac';
 import { AlertService } from 'src/alert/alert.service';
+import * as os from 'os';
 @Injectable()
 export class MqttService {
   private client: mqtt.MqttClient;
@@ -34,6 +35,10 @@ export class MqttService {
     this.client.on('connect', this.onConnect.bind(this));
     this.client.on('message', this.onMessage.bind(this));
     this.client.on('disconnect', this.onDisconnect.bind(this));
+
+    setInterval(()=>{
+      this.senderJob()
+    },60*1000)
   }
 
   onConnect() {
@@ -66,7 +71,7 @@ export class MqttService {
     return this.total_alert;
   }
   async senderJob() {
-    if (this.client.connected) {
+    if (this.client.connected && os.networkInterfaces()['wlan0'][0].address) {
       this.logger.log('mqtt server is Connected ');
       const events = await this.event.events();
       if(events.length !== 0)
@@ -75,7 +80,7 @@ export class MqttService {
       }
       for (let i = 0; i < events.length; i++) {
 
-        if(this.client.connected)
+        if(this.client.connected && os.networkInterfaces()['wlan0'][0].address)
         {
           this.publishPayload(JSON.stringify(events[i]));
           this.logger.log("[d] delete event")
@@ -93,7 +98,7 @@ export class MqttService {
         this.total_alert = alerts.length;
       }
       for (let i = 0; i < alerts.length; i++) {
-        if (this.client.connected)
+        if (this.client.connected && os.networkInterfaces()['wlan0'][0].address)
         {
           this.publishAlert(JSON.stringify(alerts[i]));
           this.logger.log("[d] delete alert")
