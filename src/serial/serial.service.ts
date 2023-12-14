@@ -174,7 +174,7 @@ export class SerialService implements OnModuleInit {
     if (this.mqtt.getConnectionState()) {
       this.status.total_alert = this.mqtt.getTotalAlert();
       this.status.total_event = this.mqtt.getTotalEvent();
-      this.status.ip = await os.networkInterfaces()['wlan0'][0].address
+      this.status.ip = os.networkInterfaces()['wlan0'][0].address
       this.status.mac = getMAC('wlan0').replaceAll(':', '')
       this.mqtt.publishStatus(JSON.stringify(this.status))
     }
@@ -202,13 +202,14 @@ export class SerialService implements OnModuleInit {
       if (new Date().getTime() - this.lastSent.getTime() > this.status.delta_time * 1000) {
 
         this.logger.log('this reader is connected but not sending data')
-        if (this.mqtt.getConnectionState) {
+        if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0'][0].address) {
           this.mqtt.publishAlert(JSON.stringify({
             ...Alert.DEVICE,
             created_at: new Date()
           }))
         }
         else if (this.saveFlag) {
+          this.logger.log("insert alert no device communication")
           this.status.last_log_date = new Date();
           this.alert.create({
             ...Alert.DEVICE,
