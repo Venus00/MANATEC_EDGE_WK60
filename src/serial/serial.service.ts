@@ -286,7 +286,7 @@ export class SerialService implements OnModuleInit {
             break;
           case 'VERSION':
             this.logger.log('[d] version type response')
-            util_data = buffer.toString().substring(5, length + 1);
+            util_data = buffer.toString().substring(5);
             this.payload.version = util_data;
             this.logger.log("version : ", this.payload.version)
             break;
