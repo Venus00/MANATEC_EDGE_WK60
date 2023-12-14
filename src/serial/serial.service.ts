@@ -273,10 +273,9 @@ export class SerialService implements OnModuleInit {
               this.payload.current_weight_loading = util_data[8];
               this.logger.log("result rad2: ", this.payload);
               this.lastSent = new Date();
-              if (this.mqtt.getConnectionState) {
+              if (this.mqtt.getConnectionState()) {
                 this.logger.log("connection is good published")
                 this.mqtt.publishPayload(JSON.stringify(this.payload));
-
               }
               else if (this.saveFlag) {
                 this.logger.log("save in database");
