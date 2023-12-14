@@ -27,8 +27,8 @@ export class MqttService {
     this.logger.log(process.env.MQTT_SERVER)
     this.client = mqtt.connect(`mqtt://${process.env.MQTT_SERVER}}`, {
       clientId: this.mac,
-      username: this.mac,
-      password: this.mac,
+      // username: this.mac,
+      // password: this.mac,
       keepalive:1,
       reconnectPeriod:1
     });
