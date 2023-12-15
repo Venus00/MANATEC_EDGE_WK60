@@ -216,7 +216,6 @@ export class SerialService implements OnModuleInit {
           })
         }
       }
-
       if (!this.saveFlag) {
         this.mqtt.publishAlert(JSON.stringify({
           ...Alert.STORAGE,
