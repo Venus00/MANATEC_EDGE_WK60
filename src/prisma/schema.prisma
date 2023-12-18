@@ -32,11 +32,11 @@ model Alert {
 }
 
 model Status {
-  id            Int      @id @default(autoincrement())
-  name          String   @unique
+  id            Int       @id @default(autoincrement())
+  name          String    @unique
   delta         Int
   shut          Int
   total_event   Int
   total_alert   Int
-  last_log_date DateTime
+  last_log_date DateTime?
 }
