@@ -21,7 +21,6 @@ export class MqttService {
   constructor(
     private event: EventService,
     private alert: AlertService,
-    @Inject(forwardRef(() => SerialService))
     private serial: SerialService
   ) {
     
@@ -71,6 +70,7 @@ export class MqttService {
   getTotalAlert() {
     return this.total_alert;
   }
+  
   async senderJob() {
     const alerts = await this.alert.getAll();
       
