@@ -44,7 +44,7 @@ export class SerialService implements OnModuleInit {
       this.logger.log("push response from device")
       this.process.lastResponseDate(new Date())
       this.process.pushEntity(JSON.stringify(this.payload))
-    })
+    }, 5000)
   }
 
   init_device() {
