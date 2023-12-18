@@ -9,8 +9,8 @@ import { StatusModule } from './status/status.module';
 import { ProcessModule } from './process/process.module';
 @Module({
   imports: [
-    ScheduleModule.forRoot(),SerialModule, MqttModule, EventModule, PrismaModule, AlertModule, StatusModule, ProcessModule],
+    ScheduleModule.forRoot(), MqttModule, ProcessModule, SerialModule, EventModule, PrismaModule, AlertModule, StatusModule],
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule { }

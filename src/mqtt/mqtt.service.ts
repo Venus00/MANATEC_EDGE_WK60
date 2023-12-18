@@ -15,7 +15,8 @@ export class MqttService implements OnModuleInit {
   protected total_event: number = 0;
   protected total_alert: number = 0;
   constructor(
-    private serial: SerialService
+    @Inject(forwardRef(() => SerialService))
+    private readonly serial: SerialService
   ) { }
 
 
