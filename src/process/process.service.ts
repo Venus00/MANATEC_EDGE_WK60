@@ -17,7 +17,7 @@ export interface STATUS {
   ip: String
   mac: String
   shutdown_counter: number
-  last_log_date: Date | null
+  last_log_date: Date | undefined
 }
 @Injectable()
 export class ProcessService implements OnModuleInit {
@@ -29,7 +29,7 @@ export class ProcessService implements OnModuleInit {
     total_alert: 0,
     total_event: 0,
     delta_time: 0,
-    last_log_date: null,
+    last_log_date: undefined,
     ip: '',
     mac: '',
     shutdown_counter: 0,
@@ -48,7 +48,7 @@ export class ProcessService implements OnModuleInit {
       total_event: 0,
       delta: 90,
       shut: 0,
-      last_log_date: null
+      last_log_date: undefined
     });
     const statusFromDb = await this.statusService.get();
     this.logger.log("status from db  : ", statusFromDb);
