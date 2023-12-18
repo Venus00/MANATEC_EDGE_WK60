@@ -192,7 +192,7 @@ export class ProcessService implements OnModuleInit {
         if (!this.mqtt.getConnectionState()) {
           //check if only wifi 
           const wifiAddress = os.networkInterfaces()['wlan0']
-          if (wifiAddress) {
+          if (!wifiAddress) {
             this.logger.error("is not connected to wifi")
             await this.alert.create({
               ...Alert.WIFI
