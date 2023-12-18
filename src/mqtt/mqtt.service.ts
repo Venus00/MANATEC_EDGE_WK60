@@ -38,7 +38,7 @@ export class MqttService {
     this.client.on('disconnect', this.onDisconnect.bind(this));
 
     setInterval(()=>{
-      this.senderJob()
+      this.senderJob.bind(this);
     },10*1000)
   }
 
