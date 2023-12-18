@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { MqttService } from './mqtt.service';
 import { SerialModule } from 'src/serial/serial.module';
 @Module({

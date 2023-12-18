@@ -71,7 +71,6 @@ export class MqttService {
         }
         else {
           this.logger.log('command not exist')
-
         }
       }
     } catch (error) {

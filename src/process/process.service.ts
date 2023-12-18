@@ -1,5 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { execSync } from 'child_process';
 import { AlertService } from 'src/alert/alert.service';
 import { EventService } from 'src/event/event.service';
