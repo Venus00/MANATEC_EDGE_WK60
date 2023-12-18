@@ -134,8 +134,8 @@ export class ProcessService implements OnModuleInit {
       await this.statusService.updateEventAlert(this.status.total_alert, this.status.total_event)
     }
     this.status.ip = os.networkInterfaces()['wlan0'][0].address
-    if (os.networkInterfaces()['wlan0'][0].address) {
-      this.logger.log('ip', os.networkInterfaces()['wlan0'][0].address)
+    if (this.status.ip) {
+      this.logger.log('ip', this.status.ip)
     }
     if (this.mqtt.getConnectionState()) {
 
@@ -194,8 +194,9 @@ export class ProcessService implements OnModuleInit {
       else {
         if (!this.mqtt.getConnectionState()) {
           //check if only wifi 
-          const wifiAddress = os.networkInterfaces()['wlan0'][0].address
+          const wifiAddress = os.networkInterfaces()['wlan0'][0]?.address
           if (!wifiAddress) {
+            this.logger.error("is connceted to wifi")
             await this.alert.create({
               ...Alert.WIFI
             })
@@ -203,6 +204,7 @@ export class ProcessService implements OnModuleInit {
             await this.statusService.updateLogDate(this.status.last_log_date);
           }
           else {
+            this.logger.error("is connceted to mqtt")
             await this.alert.create({
               ...Alert.MQTT
             })
