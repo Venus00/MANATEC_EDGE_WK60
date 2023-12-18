@@ -89,8 +89,6 @@ export class SerialService implements OnModuleInit {
     this.status.delta_time = statusFromDb.delta;
     this.status.shutdown_counter = statusFromDb.shut
     await this.statusService.updateShutDownCount(this.status.shutdown_counter+1)
-
-
     this.status.storage = execSync(`df -h /data | awk 'NR==2 {print $4}'`).toString().replace(/\n/g, '');
     this.logger.log("[d] init connection with Device ...")
     if (this.init_device()) {
@@ -173,8 +171,8 @@ export class SerialService implements OnModuleInit {
 
   @Cron(CronExpression.EVERY_10_SECONDS)
   async Status() {
-    this.status.total_alert = this.mqtt.getTotalAlert();
-    this.status.total_event = this.mqtt.getTotalEvent();
+    this.status.total_alert = this.mqtt.total_alert;
+    this.status.total_event = this.mqtt.total_event;
     this.logger.log('totale_event',this.status.total_event)
     this.logger.log('totale_alert',this.status.total_alert)
     if(this.status.total_alert !== 0 || this.status.total_event !== 0)

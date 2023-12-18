@@ -16,8 +16,8 @@ export class MqttService {
   private TOPIC_PUBLISH_PAYLOAD = process.env.TOPIC_PUBLISH.replace('+', this.mac)
   private TOPIC_PUBLISH_ALERTE = process.env.TOPIC_ALERT.replace('+', this.mac)
   private TOPIC_PUBLISH_STATUS = process.env.TOPIC_STATUS.replace('+', this.mac)
-  private total_event: number = 0;
-  private total_alert: number = 0;
+  public total_event: number = 0;
+  public total_alert: number = 0;
   constructor(
     private event: EventService,
     private alert: AlertService,
@@ -39,7 +39,7 @@ export class MqttService {
 
     setInterval(()=>{
       this.senderJob()
-    },60*1000)
+    },10*1000)
   }
 
   onConnect() {
