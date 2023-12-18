@@ -142,7 +142,7 @@ export class SerialService implements OnModuleInit {
               this.payload.current_weight_loading = util_data[8];
               this.logger.log("result rad2: ", this.payload);
               this.process.lastResponseDate(new Date())
-              this.process.pushEntity(JSON.stringify(this.payload))
+              this.process.pushEntity(this.payload)
 
             }
             break;

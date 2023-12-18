@@ -155,7 +155,7 @@ export class ProcessService implements OnModuleInit {
     }
     else if (this.saveFlag) {
       this.logger.log("save in database");
-      await this.event.createEvent(payload);
+      await this.event.createEvent(JSON.parse(payload));
       this.status.last_log_date = new Date();
       await this.statusService.updateLogDate(this.status.last_log_date);
     }
