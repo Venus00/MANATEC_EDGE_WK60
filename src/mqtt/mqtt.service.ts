@@ -3,11 +3,13 @@ import * as mqtt from 'mqtt';
 import { SerialService } from 'src/serial/serial.service';
 import { commands } from 'src/serial/commands';
 import getMAC, { isMAC } from 'getmac';
+import { execSync } from 'child_process';
 @Injectable()
 export class MqttService implements OnModuleInit {
   private client: mqtt.MqttClient;
   private logger = new Logger(MqttService.name)
-  private mac: string = getMAC('wlan0').replaceAll(':', '')
+  private mac: string = execSync(`ifconfig wlan0 | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}`).toString().replaceAll(':', '')
+
   private TOPIC_SUBSCRIBE = process.env.TOPIC_SUBSCRIBE.replace('+', this.mac)
   private TOPIC_PUBLISH_PAYLOAD = process.env.TOPIC_PUBLISH.replace('+', this.mac)
   private TOPIC_PUBLISH_ALERTE = process.env.TOPIC_ALERT.replace('+', this.mac)
