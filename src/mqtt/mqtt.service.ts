@@ -16,8 +16,8 @@ export class MqttService {
   private TOPIC_PUBLISH_PAYLOAD = process.env.TOPIC_PUBLISH.replace('+', this.mac)
   private TOPIC_PUBLISH_ALERTE = process.env.TOPIC_ALERT.replace('+', this.mac)
   private TOPIC_PUBLISH_STATUS = process.env.TOPIC_STATUS.replace('+', this.mac)
-  public total_event: number = 0;
-  public total_alert: number = 0;
+  protected total_event: number = 0;
+  protected total_alert: number = 0;
   constructor(
     private event: EventService,
     private alert: AlertService,
@@ -38,7 +38,7 @@ export class MqttService {
     this.client.on('disconnect', this.onDisconnect.bind(this));
 
     setInterval(()=>{
-      this.senderJob.bind(this);
+      this.senderJob();
     },10*1000)
   }
 
@@ -65,7 +65,7 @@ export class MqttService {
   }
 
    getTotalEvent() {
-    return   this.total_event;
+    return  this.total_event;
   }
 
   getTotalAlert() {
@@ -80,7 +80,7 @@ export class MqttService {
     this.logger.log("alert from db", alerts.length);
     if(alerts.length !== 0)
     {
-      this.logger.log("update alert toal", alerts.length);
+      this.logger.log("update alert total", alerts.length);
       this.total_alert = alerts.length;
     }
     if (this.client.connected && os.networkInterfaces()['wlan0'][0].address) {
