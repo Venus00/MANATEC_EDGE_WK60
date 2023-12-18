@@ -21,11 +21,11 @@ export class StatusService {
        async createIfNotExist(data:Status) {
          return await this.prisma.status.upsert({
              create:{
-                 name:'status',
+                 name:"status",
                  ...data,
              },
              where :{
-                 name:'status',
+                 name:"status",
              },
              update:{
                  
@@ -35,7 +35,7 @@ export class StatusService {
        async updateShutDownCount(shut:number) {
         return await this.prisma.status.update({
             where:{
-                name:'stauts',
+                name:"stauts",
             },
             data:{
                 shut:shut,
@@ -45,7 +45,7 @@ export class StatusService {
        async updateDelta(delta:number) {
         return await this.prisma.status.update({
             where:{
-                name:'stauts',
+                name:"stauts",
             },
             data:{
                 delta,
@@ -55,7 +55,7 @@ export class StatusService {
        async updateEventAlert(data:{total_alert:number,total_event:number}) {
         return await this.prisma.status.update({
             where:{
-                name:'stauts',
+                name:"stauts",
             },
             data:{
                 ...data,
@@ -65,7 +65,7 @@ export class StatusService {
        async update(data:Status) {
          return await this.prisma.status.update({
              where:{
-                 name:'status',
+                 name:"status",
              },
              data:{
                  ...data
