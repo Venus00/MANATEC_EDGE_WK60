@@ -60,11 +60,11 @@ export class ProcessService implements OnModuleInit {
     this.status.storage = execSync(`df -h /data | awk 'NR==2 {print $4}'`).toString().replace(/\n/g, '');
     this.status.mac = getMAC('wlan0').replaceAll(':', '')
 
-    setInterval(() => {
-      this.pushStatus();
-      this.checkALert();
-      this.checkLog();
-    }, 10 * 1000)
+    setInterval(async () => {
+      await this.pushStatus();
+      await this.checkALert();
+      await this.checkLog();
+    }, 20 * 1000)
   }
 
   getStatus() {
