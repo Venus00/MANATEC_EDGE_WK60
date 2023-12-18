@@ -85,6 +85,7 @@ export class SerialService implements OnModuleInit {
       shut:0,
     });
     const statusFromDb = await this.statusService.get();
+    this.logger.log("status from db  : ",statusFromDb);
     this.status.delta_time = statusFromDb.delta;
     this.status.shutdown_counter = statusFromDb.shut
     await this.statusService.updateShutDownCount(this.status.shutdown_counter+1)
