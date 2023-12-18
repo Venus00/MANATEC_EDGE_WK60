@@ -38,7 +38,7 @@ export class StatusService {
                 name:'stauts',
             },
             data:{
-                shut,
+                shut:shut,
             }
         })
        }
