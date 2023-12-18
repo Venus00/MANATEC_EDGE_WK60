@@ -195,8 +195,8 @@ export class ProcessService implements OnModuleInit {
         if (!this.mqtt.getConnectionState()) {
           //check if only wifi 
           const wifiAddress = os.networkInterfaces()['wlan0'][0]?.address
-          if (!wifiAddress) {
-            this.logger.error("is connceted to wifi")
+          if (wifiAddress !== '') {
+            this.logger.error("is not connceted to wifi")
             await this.alert.create({
               ...Alert.WIFI
             })
@@ -204,7 +204,7 @@ export class ProcessService implements OnModuleInit {
             await this.statusService.updateLogDate(this.status.last_log_date);
           }
           else {
-            this.logger.error("is connceted to mqtt")
+            this.logger.error("is not connceted to mqtt")
             await this.alert.create({
               ...Alert.MQTT
             })
