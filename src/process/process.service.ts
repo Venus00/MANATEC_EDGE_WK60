@@ -58,7 +58,7 @@ export class ProcessService implements OnModuleInit {
     this.status.total_event = statusFromDb.total_event;
     await this.statusService.updateShutDownCount(this.status.shutdown_counter + 1)
     this.status.storage = execSync(`df -h /data | awk 'NR==2 {print $4}'`).toString().replace(/\n/g, '');
-    this.status.mac = execSync(`ifconfig wlan0 | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}`).toString().replaceAll(':', '');
+    this.status.mac = execSync(`ifconfig wlan0 | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'`).toString().replaceAll(':', '');
 
     setInterval(async () => {
       await this.pushStatus();
