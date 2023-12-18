@@ -87,7 +87,7 @@ export class SerialService implements OnModuleInit {
     const statusFromDb = await this.statusService.get();
     this.status.delta_time = statusFromDb.delta;
     this.status.shutdown_counter = statusFromDb.shut
-    this.statusService.updateShutDownCount(this.status.shutdown_counter+1)
+    await this.statusService.updateShutDownCount(this.status.shutdown_counter+1)
 
 
     this.status.storage = execSync(`df -h /data | awk 'NR==2 {print $4}'`).toString().replace(/\n/g, '');
