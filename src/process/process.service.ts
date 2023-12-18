@@ -130,7 +130,6 @@ export class ProcessService implements OnModuleInit {
   }
   async statusAlertSender() {
     //if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0'][0].address) {
-    this.logger.log("mqtt connection is good sending status payload ....");
     this.logger.log('totale_event', this.status.total_event)
     this.logger.log('totale_alert', this.status.total_alert)
     if (this.status.total_alert !== 0 || this.status.total_event !== 0) {
@@ -180,7 +179,7 @@ export class ProcessService implements OnModuleInit {
         else if (this.saveFlag) {
           this.logger.log("insert alert no device communication")
           this.status.last_log_date = new Date();
-          this.statusService.updateLogDate(this.status.last_log_date)
+          await this.statusService.updateLogDate(this.status.last_log_date)
           this.alert.create({
             ...Alert.DEVICE,
           })
