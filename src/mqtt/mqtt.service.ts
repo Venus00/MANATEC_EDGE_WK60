@@ -64,14 +64,14 @@ export class MqttService {
     return this.client.connected;
   }
 
-  async getTotalEvent() {
-    return await  this.total_event;
+   getTotalEvent() {
+    return   this.total_event;
   }
 
-  async getTotalAlert() {
+  getTotalAlert() {
     this.logger.log("get total alert")
     this.logger.log(this.total_alert)
-    return await this.total_alert;
+    return this.total_alert;
   }
   
   async senderJob() {
