@@ -21,6 +21,7 @@ export class MqttService {
   constructor(
     private event: EventService,
     private alert: AlertService,
+    @Inject(forwardRef(() => SerialService))
     private serial: SerialService
   ) {
     
