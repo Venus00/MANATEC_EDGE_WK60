@@ -5,7 +5,7 @@ interface Status {
     total_alert: number
     shut: number
     delta: number
-    last_log_date: Date | undefined;
+    last_log_date?: Date;
 }
 @Injectable()
 export class StatusService {

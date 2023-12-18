@@ -48,7 +48,6 @@ export class ProcessService implements OnModuleInit {
       total_event: 0,
       delta: 90,
       shut: 0,
-      last_log_date: undefined
     });
     const statusFromDb = await this.statusService.get();
     this.logger.log("status from db  : ", statusFromDb);
