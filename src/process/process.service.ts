@@ -88,7 +88,7 @@ export class ProcessService implements OnModuleInit {
 
   //@Cron(CronExpression.EVERY_MINUTE)
   async checkLog() {
-    if (this.mqtt.getConnectionState() && (os.networkInterfaces()['wlan0'][0]?.address !== '')) {
+    if (this.mqtt.getConnectionState() && (os.networkInterfaces()['wlan0'])) {
       this.logger.log('mqtt server is Connected ');
       const events = await this.event.events();
       this.logger.log('events log', events.length)
@@ -97,7 +97,7 @@ export class ProcessService implements OnModuleInit {
       }
       for (let i = 0; i < events.length; i++) {
 
-        if (this.mqtt.getConnectionState() && (os.networkInterfaces()['wlan0'][0]?.address !== '')) {
+        if (this.mqtt.getConnectionState() && (os.networkInterfaces()['wlan0'])) {
           this.mqtt.publishPayload(JSON.stringify(events[i]));
           this.logger.log("[d] delete event")
           await this.event.delete(events[i].id)
@@ -114,7 +114,7 @@ export class ProcessService implements OnModuleInit {
         this.status.total_alert = alerts.length;
       }
       for (let i = 0; i < alerts.length; i++) {
-        if (this.mqtt.getConnectionState() && (os.networkInterfaces()['wlan0'][0].address !== '')) {
+        if (this.mqtt.getConnectionState() && (os.networkInterfaces()['wlan0'])) {
           this.mqtt.publishAlert(JSON.stringify(alerts[i]));
           this.logger.log("[d] delete alert")
           await this.alert.delete(alerts[i].id)
@@ -130,19 +130,17 @@ export class ProcessService implements OnModuleInit {
     }
   }
   async pushStatus() {
-    //if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0'][0].address) {
-    if (this.status.total_alert !== 0 || this.status.total_event !== 0) {
-      await this.statusService.updateEventAlert(this.status.total_alert, this.status.total_event)
-    }
-    this.status.ip = os.networkInterfaces()['wlan0'][0].address
-    if (this.status.ip) {
-      this.logger.log('ip', this.status.ip)
-    }
-    if (this.mqtt.getConnectionState()) {
+    if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0']) {
+      if (this.status.total_alert !== 0 || this.status.total_event !== 0) {
+        await this.statusService.updateEventAlert(this.status.total_alert, this.status.total_event)
+      }
+      this.status.ip = os.networkInterfaces()['wlan0'][0].address
+      if (this.status.ip) {
+        this.logger.log('ip', this.status.ip)
+      }
 
       this.mqtt.publishStatus(JSON.stringify(this.status))
     }
-    //}
 
   }
   lastResponseDate(date: Date) {
@@ -169,7 +167,7 @@ export class ProcessService implements OnModuleInit {
       if (new Date().getTime() - this.last_sent.getTime() > this.status.delta_time * 1000) {
 
         this.logger.log('this reader is connected but not sending data')
-        if (this.mqtt.getConnectionState() && (os.networkInterfaces()['wlan0'][0].address !== '')) {
+        if (this.mqtt.getConnectionState() && (os.networkInterfaces()['wlan0'])) {
           this.mqtt.publishAlert(JSON.stringify({
             ...Alert.DEVICE,
             created_at: new Date()
@@ -193,8 +191,8 @@ export class ProcessService implements OnModuleInit {
       else {
         if (!this.mqtt.getConnectionState()) {
           //check if only wifi 
-          const wifiAddress = os.networkInterfaces()['wlan0'][0].address
-          if (wifiAddress === '') {
+          const wifiAddress = os.networkInterfaces()['wlan0']
+          if (wifiAddress) {
             this.logger.error("is not connected to wifi")
             await this.alert.create({
               ...Alert.WIFI
