@@ -1,10 +1,10 @@
-import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleInit, forwardRef } from '@nestjs/common';
 import * as mqtt from 'mqtt';
 import { SerialService } from 'src/serial/serial.service';
 import { commands } from 'src/serial/commands';
 import getMAC, { isMAC } from 'getmac';
 @Injectable()
-export class MqttService {
+export class MqttService implements OnModuleInit {
   private client: mqtt.MqttClient;
   private logger = new Logger(MqttService.name)
   private mac: string = getMAC('wlan0').replaceAll(':', '')
@@ -16,8 +16,10 @@ export class MqttService {
   protected total_alert: number = 0;
   constructor(
     private serial: SerialService
-  ) {
+  ) { }
 
+
+  onModuleInit() {
     this.logger.log(process.env.MQTT_SERVER)
     this.client = mqtt.connect(`mqtt://${process.env.MQTT_SERVER}}`, {
       clientId: this.mac,
@@ -30,6 +32,7 @@ export class MqttService {
     this.client.on('message', this.onMessage.bind(this));
     this.client.on('disconnect', this.onDisconnect.bind(this));
   }
+
 
   onConnect() {
     this.logger.log('mqtt server is connected');
