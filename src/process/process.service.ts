@@ -157,7 +157,7 @@ export class ProcessService implements OnModuleInit {
       this.logger.log("save in database");
       await this.event.createEvent(payload);
       this.status.last_log_date = new Date();
-      await this.statusService.updateLogDate(this.status.last_log_date)
+      await this.statusService.updateLogDate(this.status.last_log_date);
     }
   }
   async updateDelta(delta_time: number) {
@@ -181,6 +181,8 @@ export class ProcessService implements OnModuleInit {
           await this.alert.create({
             ...Alert.DEVICE,
           })
+          this.status.last_log_date = new Date();
+          await this.statusService.updateLogDate(this.status.last_log_date);
         }
       }
       if (!this.saveFlag) {
@@ -197,11 +199,15 @@ export class ProcessService implements OnModuleInit {
             await this.alert.create({
               ...Alert.WIFI
             })
+            this.status.last_log_date = new Date();
+            await this.statusService.updateLogDate(this.status.last_log_date);
           }
           else {
             await this.alert.create({
               ...Alert.MQTT
             })
+            this.status.last_log_date = new Date();
+            await this.statusService.updateLogDate(this.status.last_log_date);
           }
         }
       }
