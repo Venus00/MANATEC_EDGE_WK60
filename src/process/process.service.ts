@@ -148,10 +148,10 @@ export class ProcessService implements OnModuleInit {
   lastResponseDate(date: Date) {
     this.last_sent = date;
   }
-  async pushEntity(payload) {
+  async pushEntity(payload: string) {
     if (this.mqtt.getConnectionState()) {
       this.logger.log("connection is good published")
-      this.mqtt.publishPayload(JSON.stringify(payload));
+      this.mqtt.publishPayload(payload);
     }
     else if (this.saveFlag) {
       this.logger.log("save in database");
@@ -169,7 +169,7 @@ export class ProcessService implements OnModuleInit {
       if (new Date().getTime() - this.last_sent.getTime() > this.status.delta_time * 1000) {
 
         this.logger.log('this reader is connected but not sending data')
-        if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0'][0].address !== '') {
+        if (this.mqtt.getConnectionState() && (os.networkInterfaces()['wlan0'][0].address !== '')) {
           this.mqtt.publishAlert(JSON.stringify({
             ...Alert.DEVICE,
             created_at: new Date()
@@ -193,7 +193,7 @@ export class ProcessService implements OnModuleInit {
       else {
         if (!this.mqtt.getConnectionState()) {
           //check if only wifi 
-          const wifiAddress = os.networkInterfaces()['wlan0'][0]?.address
+          const wifiAddress = os.networkInterfaces()['wlan0'][0].address
           if (wifiAddress === '') {
             this.logger.error("is not connected to wifi")
             await this.alert.create({
