@@ -94,6 +94,10 @@ export class SerialService implements OnModuleInit {
     if (this.init_device()) {
       this.starthandleRequestJob(this.status.delta_time);
     }
+
+    setInterval(()=>{
+      this.Status();
+    },10*1000)
   }
 
   init_device() {
@@ -169,7 +173,6 @@ export class SerialService implements OnModuleInit {
     this.job.start();
   }
 
-  @Cron(CronExpression.EVERY_10_SECONDS)
   async Status() {
     this.status.total_alert = this.mqtt.total_alert;
     this.status.total_event = this.mqtt.total_event;
