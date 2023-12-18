@@ -7,14 +7,13 @@ import { execSync } from 'child_process';
 import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
 import { commands } from './commands';
 import { Alert } from '../alert/alert';
-import { DeltaService } from 'src/delta/delta.service';
 import { CronJob, CronTime } from 'cron';
 import { MqttService } from 'src/mqtt/mqtt.service';
 import { AlertService } from 'src/alert/alert.service';
 import * as os from 'os'
 import { PAYLOAD, STATUS } from './data.dto';
-import { ShutService } from 'src/delta/shut.service';
 import getMAC, { isMAC } from 'getmac';
+import { StatusService } from 'src/status/status.service';
 
 @Injectable()
 export class SerialService implements OnModuleInit {
@@ -52,10 +51,9 @@ export class SerialService implements OnModuleInit {
   };
   constructor(
     private event: EventService,
-    private delta: DeltaService,
+    private statusService: StatusService,
     private alert: AlertService,
     private schedulerRegistry: SchedulerRegistry,
-    private shutService: ShutService,
     @Inject(forwardRef(() => MqttService))
     private mqtt: MqttService,
   ) {
@@ -80,20 +78,23 @@ export class SerialService implements OnModuleInit {
 
   async onModuleInit() {
     this.logger.log("[d] init SERIAL MODULE");
-    await this.delta.createIfNotExist(90);
-    this.status.delta_time = (await this.delta.get()).delta
+    await this.statusService.createIfNotExist({
+      total_alert:0,
+      total_event:0,
+      delta:90,
+      shut:0,
+    });
+    const statusFromDb = await this.statusService.get();
+    this.status.delta_time = statusFromDb.delta;
+    this.status.shutdown_counter = statusFromDb.shut
+    this.statusService.updateShutDownCount(this.status.shutdown_counter+1)
 
-    await this.shutService.createIfNotExist(0);
-    this.status.shutdown_counter = (await this.shutService.get()).count
-    this.shutService.update(this.status.shutdown_counter+1)
+
     this.status.storage = execSync(`df -h /data | awk 'NR==2 {print $4}'`).toString().replace(/\n/g, '');
-
-
     this.logger.log("[d] init connection with Device ...")
     if (this.init_device()) {
       this.starthandleRequestJob(this.status.delta_time);
     }
-
   }
 
   init_device() {
@@ -158,7 +159,7 @@ export class SerialService implements OnModuleInit {
     const job = this.schedulerRegistry.getCronJob('request');
     this.logger.log(seconds)
     this.status.delta_time = parseInt(seconds);
-    await this.delta.update(parseInt(seconds));
+    await this.statusService.updateDelta(parseInt(seconds));
     job.setTime(new CronTime(`*/${seconds} * * * * *`));
 
   }
@@ -174,7 +175,21 @@ export class SerialService implements OnModuleInit {
     if (this.mqtt.getConnectionState()) {
       this.status.total_alert = this.mqtt.getTotalAlert();
       this.status.total_event = this.mqtt.getTotalEvent();
+      this.logger.log('totale_event',this.status.total_event)
+      this.logger.log('totale_alert',this.status.total_alert)
+      if(this.status.total_alert !== 0 || this.status.total_event !== 0)
+      {
+        this.logger.log('total event diifer from zero updating db now')
+        this.statusService.updateEventAlert({
+          total_event:this.status.total_event,
+          total_alert:this.status.total_alert,
+        })
+      }
       this.status.ip = os.networkInterfaces()['wlan0'][0].address
+      if(os.networkInterfaces()['wlan0'][0].address)
+      {
+        this.logger.log('ip',os.networkInterfaces()['wlan0'][0].address)
+      }
       this.status.mac = getMAC('wlan0').replaceAll(':', '')
       this.mqtt.publishStatus(JSON.stringify(this.status))
     }
