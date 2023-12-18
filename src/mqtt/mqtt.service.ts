@@ -24,6 +24,7 @@ export class MqttService {
     @Inject(forwardRef(() => SerialService))
     private serial: SerialService
   ) {
+    
     this.logger.log(process.env.MQTT_SERVER)
     this.client = mqtt.connect(`mqtt://${process.env.MQTT_SERVER}}`, {
       clientId: this.mac,
@@ -71,6 +72,13 @@ export class MqttService {
     return this.total_alert;
   }
   async senderJob() {
+    const alerts = await this.alert.getAll();
+      
+    this.logger.log("alert from db", alerts.length);
+    if(alerts.length !== 0)
+    {
+      this.total_alert = alerts.length;
+    }
     if (this.client.connected && os.networkInterfaces()['wlan0'][0].address) {
       this.logger.log('mqtt server is Connected ');
       const events = await this.event.events();
