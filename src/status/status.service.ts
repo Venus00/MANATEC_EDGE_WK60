@@ -69,7 +69,9 @@ export class StatusService {
                 id: 1,
             },
             data: {
-                ...data,
+                total_alert: data.total_alert,
+                total_event: data.total_alert
+
             }
         })
     }
