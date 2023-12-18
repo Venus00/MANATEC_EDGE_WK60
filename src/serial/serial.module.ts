@@ -2,12 +2,13 @@ import { Module, forwardRef } from '@nestjs/common';
 import { SerialService } from './serial.service';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { EventModule } from 'src/event/event.module';
-import { MqttModule } from 'src/mqtt/mqtt.module';
 import { AlertModule } from 'src/alert/alert.module';
 import { StatusModule } from 'src/status/status.module';
+import { ProcessModule } from 'src/process/process.module';
+
 @Module({
-  imports: [EventModule,PrismaModule,AlertModule,StatusModule,forwardRef(() => MqttModule)],
+  imports: [StatusModule, ProcessModule],
   providers: [SerialService],
-  exports:[SerialService]
+  exports: [SerialService]
 })
-export class SerialModule {}
+export class SerialModule { }

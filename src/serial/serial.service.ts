@@ -1,39 +1,21 @@
 
-import { Inject, Injectable, Logger, OnModuleInit, forwardRef } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, forwardRef } from '@nestjs/common';
 import { SerialPort } from 'serialport';
 import { DelimiterParser } from '@serialport/parser-delimiter';
-import { EventService } from 'src/event/event.service';
-import { execSync } from 'child_process';
 import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
 import { commands } from './commands';
-import { Alert } from '../alert/alert';
 import { CronJob, CronTime } from 'cron';
-import { MqttService } from 'src/mqtt/mqtt.service';
-import { AlertService } from 'src/alert/alert.service';
-import * as os from 'os'
-import { PAYLOAD, STATUS } from './data.dto';
-import getMAC, { isMAC } from 'getmac';
+import { PAYLOAD } from './data.dto';
 import { StatusService } from 'src/status/status.service';
+import { ProcessService } from 'src/process/process.service';
 
 @Injectable()
 export class SerialService implements OnModuleInit {
   private reader;
   private readerParser;
   private readonly logger = new Logger(SerialService.name);
-  private saveFlag = true;
-  private lastSent: Date = new Date();
   private job;
   private command_type: string;
-  private status: STATUS = {
-    storage: '',
-    total_alert: 0,
-    total_event: 0,
-    delta_time: 0,
-    last_log_date: undefined,
-    ip: '',
-    mac: '',
-    shutdown_counter: 0,
-  }
   private payload: PAYLOAD = {
     created_at: new Date(),
     version: '',
@@ -50,15 +32,10 @@ export class SerialService implements OnModuleInit {
     current_weight_loading: '',
   };
   constructor(
-    private event: EventService,
     private statusService: StatusService,
-    private alert: AlertService,
     private schedulerRegistry: SchedulerRegistry,
-    @Inject(forwardRef(() => MqttService))
-    private mqtt: MqttService,
-  ) {
-
-  }
+    private process: ProcessService,
+  ) { }
 
   // checkDevice() {
   //   return new Promise<string>((resolve, reject) => {
@@ -77,27 +54,10 @@ export class SerialService implements OnModuleInit {
   // }
 
   async onModuleInit() {
-    this.logger.log("[d] init SERIAL MODULE");
-    await this.statusService.createIfNotExist({
-      total_alert:0,
-      total_event:0,
-      delta:90,
-      shut:0,
-    });
-    const statusFromDb = await this.statusService.get();
-    this.logger.log("status from db  : ",statusFromDb);
-    this.status.delta_time = statusFromDb.delta;
-    this.status.shutdown_counter = statusFromDb.shut
-    await this.statusService.updateShutDownCount(this.status.shutdown_counter+1)
-    this.status.storage = execSync(`df -h /data | awk 'NR==2 {print $4}'`).toString().replace(/\n/g, '');
     this.logger.log("[d] init connection with Device ...")
-    if (this.init_device()) {
-      this.starthandleRequestJob(this.status.delta_time);
-    }
-
-    setInterval(()=>{
-      this.Status();
-    },10*1000)
+    this.init_device()
+    this.logger.log("[d] init requesting from device ...")
+    this.starthandleRequestJob(this.process.getStatus().delta_time);
   }
 
   init_device() {
@@ -133,133 +93,40 @@ export class SerialService implements OnModuleInit {
         this.write(commands.VERSION)
         await this.sleep(5000);
       }
-
-
       if (this.payload.version_protocole === '') {
         this.command_type = "VERSION_PROTOCOLE"
         this.logger.error('[d] still not getting protocole verion')
         this.write(commands.VERSION_PROPTOCOLE)
         await this.sleep(5000);
       }
-
       if (this.payload.sn === '') {
         this.command_type = "SN"
         this.logger.error('[d] still not getting sn ... ')
         this.write(commands.SN)
         await this.sleep(5000);
       }
-
       this.command_type = 'RAD_2'
       this.logger.log("[d] sending RAD_2 COMMAND")
       this.write(commands.RAD_2);
     }
     else {
-      this.logger.log("port is closed")
+      this.logger.error("port is closed")
     }
   }
 
   async changehandleRequestJob(seconds) {
     const job = this.schedulerRegistry.getCronJob('request');
     this.logger.log(seconds)
-    this.status.delta_time = parseInt(seconds);
+    this.process.updateDelta(parseInt(seconds));
     await this.statusService.updateDelta(parseInt(seconds));
     job.setTime(new CronTime(`*/${seconds} * * * * *`));
 
   }
   starthandleRequestJob(seconds: number) {
-    this.logger.log("[d] create REQUEST RAD_2 JOB ")
+    this.logger.log("[d] create REQUEST from device ")
     this.job = new CronJob(`*/${seconds} * * * * *`, this.handleRequestJob.bind(this));
     this.schedulerRegistry.addCronJob('request', this.job);
     this.job.start();
-  }
-
-  async Status() {
-    this.status.total_alert = this.mqtt.getTotalAlert();
-    this.status.total_event = this.mqtt.getTotalEvent();
-    this.logger.log('totale_event',this.status.total_event)
-    this.logger.log('totale_alert',this.status.total_alert)
-    if(this.status.total_alert !== 0 || this.status.total_event !== 0)
-    {
-      this.logger.log('total event diifer from zero updating db now')
-      this.statusService.updateEventAlert({
-        total_event:this.status.total_event,
-        total_alert:this.status.total_alert,
-      })
-    }
-    this.status.ip = os.networkInterfaces()['wlan0'][0].address
-    if(os.networkInterfaces()['wlan0'][0].address)
-    {
-      this.logger.log('ip',os.networkInterfaces()['wlan0'][0].address)
-    }
-    this.status.mac = getMAC('wlan0').replaceAll(':', '')
-    if (this.mqtt.getConnectionState()) {
-     
-      this.mqtt.publishStatus(JSON.stringify(this.status))
-    }
-  }
-
-
-  @Cron(CronExpression.EVERY_10_MINUTES)
-  handleCron() {
-    const storage = execSync(`df -h /data | awk 'NR==2 {print $4}'`).toString();
-    this.status.storage = storage.replace(/\n/g, '');
-    const typeKB = storage.includes('K');
-    const sizeValue = +storage.replace(/[GMK]/gi, '');
-    if (typeKB && sizeValue < 300) {
-
-      this.saveFlag = false;
-    }
-    else {
-      this.saveFlag = true;
-    }
-  }
-
-  @Cron(CronExpression.EVERY_30_SECONDS)
-  async checkALert() {
-    try {
-      if (new Date().getTime() - this.lastSent.getTime() > this.status.delta_time * 1000) {
-
-        this.logger.log('this reader is connected but not sending data')
-        if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0'][0].address) {
-          this.mqtt.publishAlert(JSON.stringify({
-            ...Alert.DEVICE,
-            created_at: new Date()
-          }))
-        }
-        else if (this.saveFlag) {
-          this.logger.log("insert alert no device communication")
-          this.status.last_log_date = new Date();
-          this.alert.create({
-            ...Alert.DEVICE,
-          })
-        }
-      }
-      if (!this.saveFlag) {
-        this.mqtt.publishAlert(JSON.stringify({
-          ...Alert.STORAGE,
-          created_at: new Date(),
-        }))
-      }
-      else {
-        if (!this.mqtt.getConnectionState()) {
-          //check if only wifi 
-          const wifiAddress = os.networkInterfaces()['wlan0'][0].address
-          if (!wifiAddress) {
-            this.alert.create({
-              ...Alert.WIFI
-            })
-          }
-          else {
-            this.alert.create({
-              ...Alert.MQTT
-            })
-          }
-        }
-      }
-    } catch (error) {
-      this.logger.error(error)
-    }
-
   }
 
   async onReaderClose() {
@@ -289,16 +156,9 @@ export class SerialService implements OnModuleInit {
               this.payload.time_last_stroke = util_data[7];
               this.payload.current_weight_loading = util_data[8];
               this.logger.log("result rad2: ", this.payload);
-              this.lastSent = new Date();
-              if (this.mqtt.getConnectionState()) {
-                this.logger.log("connection is good published")
-                this.mqtt.publishPayload(JSON.stringify(this.payload));
-              }
-              else if (this.saveFlag) {
-                this.logger.log("save in database");
-                this.status.last_log_date = new Date();
-                this.event.createEvent(this.payload)
-              }
+              this.process.lastResponseDate(new Date())
+              this.process.pushEntity(JSON.stringify(this.payload))
+
             }
             break;
           case 'VERSION':
