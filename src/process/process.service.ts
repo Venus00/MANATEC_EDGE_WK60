@@ -181,8 +181,7 @@ export class ProcessService implements OnModuleInit {
           await this.alert.create({
             ...Alert.DEVICE,
           })
-          this.status.last_log_date = new Date();
-          await this.statusService.updateLogDate(this.status.last_log_date);
+
         }
       }
       if (!this.saveFlag) {
@@ -200,16 +199,14 @@ export class ProcessService implements OnModuleInit {
             await this.alert.create({
               ...Alert.WIFI
             })
-            this.status.last_log_date = new Date();
-            await this.statusService.updateLogDate(this.status.last_log_date);
+
           }
           else {
             this.logger.error("is not connected to mqtt")
             await this.alert.create({
               ...Alert.MQTT
             })
-            this.status.last_log_date = new Date();
-            await this.statusService.updateLogDate(this.status.last_log_date);
+
           }
         }
       }

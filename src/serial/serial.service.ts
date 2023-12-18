@@ -40,6 +40,11 @@ export class SerialService implements OnModuleInit {
     this.init_device()
     this.logger.log("[d] init requesting from device ...")
     this.starthandleRequestJob(this.process.getStatus().delta_time);
+    setInterval(() => {
+      this.logger.log("push response from device")
+      this.process.lastResponseDate(new Date())
+      this.process.pushEntity(JSON.stringify(this.payload))
+    })
   }
 
   init_device() {
