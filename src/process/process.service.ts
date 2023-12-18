@@ -148,10 +148,10 @@ export class ProcessService implements OnModuleInit {
   lastResponseDate(date: Date) {
     this.last_sent = date;
   }
-  async pushEntity(payload: string) {
+  async pushEntity(payload) {
     if (this.mqtt.getConnectionState()) {
       this.logger.log("connection is good published")
-      this.mqtt.publishPayload(payload);
+      this.mqtt.publishPayload(JSON.stringify(payload));
     }
     else if (this.saveFlag) {
       this.logger.log("save in database");
