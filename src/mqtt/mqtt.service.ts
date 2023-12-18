@@ -8,22 +8,29 @@ import { execSync } from 'child_process';
 export class MqttService implements OnModuleInit {
   private client: mqtt.MqttClient;
   private logger = new Logger(MqttService.name)
-  private mac: string = execSync(`ifconfig wlan0 | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'`).toString().replaceAll(':', '')
-
-  private TOPIC_SUBSCRIBE = process.env.TOPIC_SUBSCRIBE.replace('+', this.mac)
-  private TOPIC_PUBLISH_PAYLOAD = process.env.TOPIC_PUBLISH.replace('+', this.mac)
-  private TOPIC_PUBLISH_ALERTE = process.env.TOPIC_ALERT.replace('+', this.mac)
-  private TOPIC_PUBLISH_STATUS = process.env.TOPIC_STATUS.replace('+', this.mac)
+  private mac: string;
+  private TOPIC_SUBSCRIBE: string;
+  private TOPIC_PUBLISH_PAYLOAD: string;
+  private TOPIC_PUBLISH_ALERTE: string;
+  private TOPIC_PUBLISH_STATUS: string;
   protected total_event: number = 0;
   protected total_alert: number = 0;
   constructor(
     @Inject(forwardRef(() => SerialService))
     private readonly serial: SerialService
-  ) { }
+  ) {
+    this.logger.log("mac address", this.mac);
+
+  }
 
 
   onModuleInit() {
     this.logger.log(process.env.MQTT_SERVER)
+    this.mac = execSync(`ifconfig wlan0 | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'`).toString().replaceAll(':', '');
+    this.TOPIC_SUBSCRIBE = process.env.TOPIC_SUBSCRIBE.replace('+', this.mac)
+    this.TOPIC_PUBLISH_PAYLOAD = process.env.TOPIC_PUBLISH.replace('+', this.mac)
+    this.TOPIC_PUBLISH_ALERTE = process.env.TOPIC_ALERT.replace('+', this.mac)
+    this.TOPIC_PUBLISH_STATUS = process.env.TOPIC_STATUS.replace('+', this.mac)
     this.client = mqtt.connect(`mqtt://${process.env.MQTT_SERVER}}`, {
       clientId: this.mac,
       // username: this.mac,
