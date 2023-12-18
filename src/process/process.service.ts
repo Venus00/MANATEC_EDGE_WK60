@@ -62,6 +62,7 @@ export class ProcessService implements OnModuleInit {
 
     setInterval(() => {
       this.statusAlertSender();
+      this.logSender();
     }, 10 * 1000)
   }
 
@@ -86,13 +87,6 @@ export class ProcessService implements OnModuleInit {
 
   @Cron(CronExpression.EVERY_MINUTE)
   async logSender() {
-    this.logger.log('connection to broker is back send now ....')
-    const alerts = await this.alert.getAll();
-    this.logger.log("alert from db", alerts.length);
-    if (alerts.length !== 0) {
-      this.logger.log("update alert total", alerts.length);
-      this.status.total_alert = alerts.length;
-    }
     if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0'][0].address) {
       this.logger.log('mqtt server is Connected ');
       const events = await this.event.events();
