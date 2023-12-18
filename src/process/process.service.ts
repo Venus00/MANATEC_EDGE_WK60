@@ -130,10 +130,7 @@ export class ProcessService implements OnModuleInit {
   }
   async statusAlertSender() {
     //if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0'][0].address) {
-    this.logger.log('totale_event', this.status.total_event)
-    this.logger.log('totale_alert', this.status.total_alert)
     if (this.status.total_alert !== 0 || this.status.total_event !== 0) {
-      this.logger.log('total event diifer from zero updating db now')
       await this.statusService.updateEventAlert(this.status.total_alert, this.status.total_event)
     }
     this.status.ip = os.networkInterfaces()['wlan0'][0].address
