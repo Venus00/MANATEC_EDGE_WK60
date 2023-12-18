@@ -172,25 +172,26 @@ export class SerialService implements OnModuleInit {
 
   @Cron(CronExpression.EVERY_10_SECONDS)
   async Status() {
+    this.status.total_alert = this.mqtt.getTotalAlert();
+    this.status.total_event = this.mqtt.getTotalEvent();
+    this.logger.log('totale_event',this.status.total_event)
+    this.logger.log('totale_alert',this.status.total_alert)
+    if(this.status.total_alert !== 0 || this.status.total_event !== 0)
+    {
+      this.logger.log('total event diifer from zero updating db now')
+      this.statusService.updateEventAlert({
+        total_event:this.status.total_event,
+        total_alert:this.status.total_alert,
+      })
+    }
+    this.status.ip = os.networkInterfaces()['wlan0'][0].address
+    if(os.networkInterfaces()['wlan0'][0].address)
+    {
+      this.logger.log('ip',os.networkInterfaces()['wlan0'][0].address)
+    }
+    this.status.mac = getMAC('wlan0').replaceAll(':', '')
     if (this.mqtt.getConnectionState()) {
-      this.status.total_alert = this.mqtt.getTotalAlert();
-      this.status.total_event = this.mqtt.getTotalEvent();
-      this.logger.log('totale_event',this.status.total_event)
-      this.logger.log('totale_alert',this.status.total_alert)
-      if(this.status.total_alert !== 0 || this.status.total_event !== 0)
-      {
-        this.logger.log('total event diifer from zero updating db now')
-        this.statusService.updateEventAlert({
-          total_event:this.status.total_event,
-          total_alert:this.status.total_alert,
-        })
-      }
-      this.status.ip = os.networkInterfaces()['wlan0'][0].address
-      if(os.networkInterfaces()['wlan0'][0].address)
-      {
-        this.logger.log('ip',os.networkInterfaces()['wlan0'][0].address)
-      }
-      this.status.mac = getMAC('wlan0').replaceAll(':', '')
+     
       this.mqtt.publishStatus(JSON.stringify(this.status))
     }
   }

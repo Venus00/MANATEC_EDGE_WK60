@@ -27,8 +27,8 @@ export class MqttService {
     this.logger.log(process.env.MQTT_SERVER)
     this.client = mqtt.connect(`mqtt://${process.env.MQTT_SERVER}}`, {
       clientId: this.mac,
-      // username: this.mac,
-      // password: this.mac,
+      username: this.mac,
+      password: this.mac,
       keepalive:1,
       reconnectPeriod:1
     });
@@ -74,6 +74,7 @@ export class MqttService {
     if (this.client.connected && os.networkInterfaces()['wlan0'][0].address) {
       this.logger.log('mqtt server is Connected ');
       const events = await this.event.events();
+      this.logger.log('events log',events.length)
       if(events.length !== 0)
       {
         this.total_event = events.length;
@@ -87,12 +88,13 @@ export class MqttService {
           await this.event.delete(events[i].id)
         }
         else {
-          this.logger.error('[d] BROKERR MQTT CONNECTION IS LOST')
+          this.logger.error('[d] BROKER MQTT CONNECTION IS LOST')
           return ;
         }
       }
       const alerts = await this.alert.getAll();
-      this.logger.log("alert from db", alerts);
+      
+      this.logger.log("alert from db", alerts.length);
       if(alerts.length !== 0)
       {
         this.total_alert = alerts.length;
