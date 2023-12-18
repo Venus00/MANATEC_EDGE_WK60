@@ -19,7 +19,6 @@ export class MqttService implements OnModuleInit {
     @Inject(forwardRef(() => SerialService))
     private readonly serial: SerialService
   ) {
-    this.logger.log("mac address", this.mac);
 
   }
 
