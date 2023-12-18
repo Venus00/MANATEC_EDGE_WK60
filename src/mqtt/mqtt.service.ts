@@ -40,6 +40,7 @@ export class MqttService implements OnModuleInit {
     });
     this.client.on('connect', this.onConnect.bind(this));
     this.client.on('message', this.onMessage.bind(this));
+    this.client.on('close', this.onError.bind(this));
     this.client.on('error', this.onError.bind(this));
     this.client.on('disconnect', this.onDisconnect.bind(this));
   }
