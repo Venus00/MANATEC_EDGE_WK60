@@ -175,7 +175,7 @@ export class SerialService implements OnModuleInit {
 
   async Status() {
     this.status.total_alert = this.mqtt.getTotalAlert();
-    this.status.total_event = this.mqtt.getTotalAlert();
+    this.status.total_event = this.mqtt.getTotalEvent();
     this.logger.log('totale_event',this.status.total_event)
     this.logger.log('totale_alert',this.status.total_alert)
     if(this.status.total_alert !== 0 || this.status.total_event !== 0)
