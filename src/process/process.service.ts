@@ -180,7 +180,7 @@ export class ProcessService implements OnModuleInit {
           this.logger.log("insert alert no device communication")
           this.status.last_log_date = new Date();
           await this.statusService.updateLogDate(this.status.last_log_date)
-          this.alert.create({
+          await this.alert.create({
             ...Alert.DEVICE,
           })
         }
@@ -196,12 +196,12 @@ export class ProcessService implements OnModuleInit {
           //check if only wifi 
           const wifiAddress = os.networkInterfaces()['wlan0'][0].address
           if (!wifiAddress) {
-            this.alert.create({
+            await this.alert.create({
               ...Alert.WIFI
             })
           }
           else {
-            this.alert.create({
+            await this.alert.create({
               ...Alert.MQTT
             })
           }
