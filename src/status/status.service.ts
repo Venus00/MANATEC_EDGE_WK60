@@ -63,15 +63,14 @@ export class StatusService {
             }
         })
     }
-    async updateEventAlert(data: { total_alert: number, total_event: number }) {
+    async updateEventAlert(total_alert: number, total_event: number) {
         return await this.prisma.status.update({
             where: {
                 id: 1,
             },
             data: {
-                total_alert: data.total_alert,
-                total_event: data.total_alert
-
+                total_alert,
+                total_event,
             }
         })
     }

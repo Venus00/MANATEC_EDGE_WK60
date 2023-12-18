@@ -135,10 +135,7 @@ export class ProcessService implements OnModuleInit {
     this.logger.log('totale_alert', this.status.total_alert)
     if (this.status.total_alert !== 0 || this.status.total_event !== 0) {
       this.logger.log('total event diifer from zero updating db now')
-      this.statusService.updateEventAlert({
-        total_event: this.status.total_event,
-        total_alert: this.status.total_alert,
-      })
+      await this.statusService.updateEventAlert(this.status.total_alert, this.status.total_event)
     }
     this.status.ip = os.networkInterfaces()['wlan0'][0].address
     if (os.networkInterfaces()['wlan0'][0].address) {
