@@ -61,8 +61,9 @@ export class ProcessService implements OnModuleInit {
     this.status.mac = getMAC('wlan0').replaceAll(':', '')
 
     setInterval(() => {
-      this.statusAlertSender();
-      this.logSender();
+      this.pushStatus();
+      this.checkALert();
+      this.checkLog();
     }, 10 * 1000)
   }
 
@@ -71,7 +72,7 @@ export class ProcessService implements OnModuleInit {
   }
 
   @Cron(CronExpression.EVERY_10_MINUTES)
-  handleCron() {
+  checkSystemStorage() {
     const storage = execSync(`df -h /data | awk 'NR==2 {print $4}'`).toString();
     this.status.storage = storage.replace(/\n/g, '');
     const typeKB = storage.includes('K');
@@ -85,8 +86,8 @@ export class ProcessService implements OnModuleInit {
     }
   }
 
-  @Cron(CronExpression.EVERY_MINUTE)
-  async logSender() {
+  //@Cron(CronExpression.EVERY_MINUTE)
+  async checkLog() {
     if (this.mqtt.getConnectionState() && (os.networkInterfaces()['wlan0'][0]?.address !== '')) {
       this.logger.log('mqtt server is Connected ');
       const events = await this.event.events();
@@ -128,7 +129,7 @@ export class ProcessService implements OnModuleInit {
       this.logger.error('[d] mqtt server is not connected connot sending ... ');
     }
   }
-  async statusAlertSender() {
+  async pushStatus() {
     //if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0'][0].address) {
     if (this.status.total_alert !== 0 || this.status.total_event !== 0) {
       await this.statusService.updateEventAlert(this.status.total_alert, this.status.total_event)
@@ -142,7 +143,6 @@ export class ProcessService implements OnModuleInit {
       this.mqtt.publishStatus(JSON.stringify(this.status))
     }
     //}
-    this.checkALert()
 
   }
   lastResponseDate(date: Date) {
@@ -195,8 +195,8 @@ export class ProcessService implements OnModuleInit {
         if (!this.mqtt.getConnectionState()) {
           //check if only wifi 
           const wifiAddress = os.networkInterfaces()['wlan0'][0]?.address
-          if (wifiAddress !== '') {
-            this.logger.error("is not connceted to wifi")
+          if (wifiAddress === '') {
+            this.logger.error("is not connected to wifi")
             await this.alert.create({
               ...Alert.WIFI
             })
@@ -204,7 +204,7 @@ export class ProcessService implements OnModuleInit {
             await this.statusService.updateLogDate(this.status.last_log_date);
           }
           else {
-            this.logger.error("is not connceted to mqtt")
+            this.logger.error("is not connected to mqtt")
             await this.alert.create({
               ...Alert.MQTT
             })
