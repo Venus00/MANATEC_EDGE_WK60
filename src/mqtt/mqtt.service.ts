@@ -77,6 +77,7 @@ export class MqttService {
     this.logger.log("alert from db", alerts.length);
     if(alerts.length !== 0)
     {
+      this.logger.log("update alert toal", alerts.length);
       this.total_alert = alerts.length;
     }
     if (this.client.connected && os.networkInterfaces()['wlan0'][0].address) {
