@@ -30,7 +30,7 @@ export class MqttService implements OnModuleInit {
     this.TOPIC_PUBLISH_PAYLOAD = process.env.TOPIC_PUBLISH.replace('+', this.mac)
     this.TOPIC_PUBLISH_ALERTE = process.env.TOPIC_ALERT.replace('+', this.mac)
     this.TOPIC_PUBLISH_STATUS = process.env.TOPIC_STATUS.replace('+', this.mac)
-    this.client = mqtt.connect(`mqtt://${process.env.MQTT_SERVER}}`, {
+    this.client = mqtt.connect(`mqtt://${process.env.MQTT_SERVER}`, {
       clientId: this.mac,
       // username: this.mac,
       // password: this.mac,
