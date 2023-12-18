@@ -158,7 +158,9 @@ export class ProcessService implements OnModuleInit {
     }
     else if (this.saveFlag) {
       this.logger.log("save in database");
-      await this.event.createEvent(payload)
+      await this.event.createEvent(payload);
+      this.status.last_log_date = new Date();
+      await this.statusService.updateLogDate(this.status.last_log_date)
     }
   }
   async updateDelta(delta_time: number) {
@@ -178,8 +180,7 @@ export class ProcessService implements OnModuleInit {
         }
         else if (this.saveFlag) {
           this.logger.log("insert alert no device communication")
-          this.status.last_log_date = new Date();
-          await this.statusService.updateLogDate(this.status.last_log_date)
+
           await this.alert.create({
             ...Alert.DEVICE,
           })
