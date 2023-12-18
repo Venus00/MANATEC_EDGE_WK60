@@ -87,7 +87,7 @@ export class ProcessService implements OnModuleInit {
 
   @Cron(CronExpression.EVERY_MINUTE)
   async logSender() {
-    if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0'][0]?.address) {
+    if (this.mqtt.getConnectionState() && (os.networkInterfaces()['wlan0'][0]?.address !== '')) {
       this.logger.log('mqtt server is Connected ');
       const events = await this.event.events();
       this.logger.log('events log', events.length)
@@ -96,7 +96,7 @@ export class ProcessService implements OnModuleInit {
       }
       for (let i = 0; i < events.length; i++) {
 
-        if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0'][0]?.address) {
+        if (this.mqtt.getConnectionState() && (os.networkInterfaces()['wlan0'][0]?.address !== '')) {
           this.mqtt.publishPayload(JSON.stringify(events[i]));
           this.logger.log("[d] delete event")
           await this.event.delete(events[i].id)
@@ -113,7 +113,7 @@ export class ProcessService implements OnModuleInit {
         this.status.total_alert = alerts.length;
       }
       for (let i = 0; i < alerts.length; i++) {
-        if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0'][0].address) {
+        if (this.mqtt.getConnectionState() && (os.networkInterfaces()['wlan0'][0].address !== '')) {
           this.mqtt.publishAlert(JSON.stringify(alerts[i]));
           this.logger.log("[d] delete alert")
           await this.alert.delete(alerts[i].id)
@@ -169,7 +169,7 @@ export class ProcessService implements OnModuleInit {
       if (new Date().getTime() - this.last_sent.getTime() > this.status.delta_time * 1000) {
 
         this.logger.log('this reader is connected but not sending data')
-        if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0'][0].address) {
+        if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0'][0].address !== '') {
           this.mqtt.publishAlert(JSON.stringify({
             ...Alert.DEVICE,
             created_at: new Date()
