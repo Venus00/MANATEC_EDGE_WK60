@@ -23,9 +23,10 @@ export class MqttService implements OnModuleInit {
   }
 
 
-  onModuleInit() {
+  async onModuleInit() {
     this.logger.log(process.env.MQTT_SERVER)
     this.mac = execSync(`ifconfig wlan0 | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'`).toString().replaceAll(':', '');
+    this.logger.log('mac', this.mac)
     this.TOPIC_SUBSCRIBE = process.env.TOPIC_SUBSCRIBE.replace('+', this.mac)
     this.TOPIC_PUBLISH_PAYLOAD = process.env.TOPIC_PUBLISH.replace('+', this.mac)
     this.TOPIC_PUBLISH_ALERTE = process.env.TOPIC_ALERT.replace('+', this.mac)
