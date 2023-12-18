@@ -48,6 +48,7 @@ export class ProcessService implements OnModuleInit {
       total_event: 0,
       delta: 90,
       shut: 0,
+      last_log_date: undefined
     });
     const statusFromDb = await this.statusService.get();
     this.logger.log("status from db  : ", statusFromDb);
@@ -168,7 +169,6 @@ export class ProcessService implements OnModuleInit {
     }
     else if (this.saveFlag) {
       this.logger.log("save in database");
-      this.status.last_log_date = new Date();
       this.event.createEvent(payload)
     }
   }
@@ -189,6 +189,7 @@ export class ProcessService implements OnModuleInit {
         else if (this.saveFlag) {
           this.logger.log("insert alert no device communication")
           this.status.last_log_date = new Date();
+          this.statusService.updateLogDate(this.status.last_log_date)
           this.alert.create({
             ...Alert.DEVICE,
           })
