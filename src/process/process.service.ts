@@ -172,7 +172,8 @@ export class ProcessService implements OnModuleInit {
       this.event.createEvent(payload)
     }
   }
-  updateDelta(delta_time: number) {
+  async updateDelta(delta_time: number) {
+    await this.statusService.updateDelta(delta_time);
     this.status.delta_time = delta_time;
   }
   async checkALert() {

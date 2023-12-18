@@ -6,7 +6,6 @@ import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
 import { commands } from './commands';
 import { CronJob, CronTime } from 'cron';
 import { PAYLOAD } from './data.dto';
-import { StatusService } from 'src/status/status.service';
 import { ProcessService } from 'src/process/process.service';
 
 @Injectable()
@@ -32,26 +31,9 @@ export class SerialService implements OnModuleInit {
     current_weight_loading: '',
   };
   constructor(
-    private statusService: StatusService,
     private schedulerRegistry: SchedulerRegistry,
     private process: ProcessService,
   ) { }
-
-  // checkDevice() {
-  //   return new Promise<string>((resolve, reject) => {
-  //     const checkPortInterval = setInterval(async () => {
-  //       const portList = await SerialPort.list();
-  //       for (let index = 0; index < portList.length; index++) {
-  //         if (portList[index].vendorId === process.env.DEVICE_VID && portList[index].productId === process.env.DEVICE_PID) {
-  //           this.logger.log("[d] Device finded Successfully")
-  //           clearInterval(checkPortInterval)
-  //           resolve(portList[index].path)
-  //         }
-  //       }
-  //       this.checkALert();
-  //     }, 5000)
-  //   })
-  // }
 
   async onModuleInit() {
     this.logger.log("[d] init connection with Device ...")
@@ -117,10 +99,8 @@ export class SerialService implements OnModuleInit {
   async changehandleRequestJob(seconds) {
     const job = this.schedulerRegistry.getCronJob('request');
     this.logger.log(seconds)
-    this.process.updateDelta(parseInt(seconds));
-    await this.statusService.updateDelta(parseInt(seconds));
+    await this.process.updateDelta(parseInt(seconds));
     job.setTime(new CronTime(`*/${seconds} * * * * *`));
-
   }
   starthandleRequestJob(seconds: number) {
     this.logger.log("[d] create REQUEST from device ")
