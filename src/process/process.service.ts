@@ -64,7 +64,7 @@ export class ProcessService implements OnModuleInit {
       await this.pushStatus();
       await this.checkALert();
       await this.checkLog();
-    }, 20 * 1000)
+    }, 30 * 1000)
   }
 
   getStatus() {
