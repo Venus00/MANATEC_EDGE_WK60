@@ -135,11 +135,14 @@ export class ProcessService implements OnModuleInit {
         await this.statusService.updateEventAlert(this.status.total_alert, this.status.total_event)
       }
       this.status.ip = os.networkInterfaces()['wlan0'][0].address
+      this.logger.log(this.status.ip);
       if (this.status.ip) {
         this.logger.log('ip', this.status.ip)
       }
-
       this.mqtt.publishStatus(JSON.stringify(this.status))
+    }
+    else {
+      this.logger.log('connection problem')
     }
 
   }
