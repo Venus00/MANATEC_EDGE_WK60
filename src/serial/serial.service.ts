@@ -7,6 +7,46 @@ import { CronJob, CronTime } from 'cron';
 import { PAYLOAD } from './data.dto';
 import { ProcessService } from 'src/process/process.service';
 
+interface GODET_LOAD {
+  weight: string;
+  number: string;
+  voucher: string;
+}
+interface ERROR {
+  message: string;
+  value: string;
+}
+
+interface FINISH {
+  total_weight: string;
+  number_buckets: string;
+  voucher_number: string;
+  date: string;
+  clock_time: string;
+  total_price: string;
+}
+
+interface FINISH_SHIFT {
+  total_weight: string;
+  number_bucket: string;
+  voucher_number: string;
+  date: string;
+  clock_time: string;
+  total_price: string;
+  costumer_name: string;
+  costumer_number: string;
+  material_name: string;
+  material_number: string;
+  building_name: string;
+  building_number: string;
+  driver_name: string;
+  driver_number: string;
+  vehicule_number: string;
+  vehicule_name: string;
+  container_name: string;
+  container_number: string;
+}
+
 @Injectable()
 export class SerialService implements OnModuleInit {
   private reader;
@@ -14,6 +54,10 @@ export class SerialService implements OnModuleInit {
   private readonly logger = new Logger(SerialService.name);
   private job;
   private command_type: string;
+  private godet_load: GODET_LOAD;
+  private error: ERROR;
+  private finish_shift: FINISH_SHIFT;
+  private finish: FINISH;
   private payload: PAYLOAD = {
     created_at: new Date(),
     version: '',
@@ -116,62 +160,81 @@ export class SerialService implements OnModuleInit {
   async onReaderClose() {
     this.logger.error('PORT CLOSED');
   }
+  splitBufferwithSperator(buffer, seprator) {
+    const result = [];
+    let current_byte = [];
+    for (let i = 0; i < buffer.length; i++) {
+      if (buffer[i] === seprator) {
+        if (current_byte.length > 0) {
+          result.push(current_byte);
+          current_byte = [];
+        } else {
+          current_byte.push(buffer[i]);
+        }
+      }
+    }
+    return result;
+  }
   onReaderData(buffer: Buffer) {
     try {
-      //this.logger.log(buffer)
-      if (buffer != null && buffer.length > 7 && buffer[0] === 0x02) {
-        let util_data;
-        let length = buffer[1] + buffer[2] + buffer[3] + buffer[4];
-        length = parseInt(length.toString(), 16);
-        this.logger.log('buffer received', buffer);
-        switch (this.command_type) {
-          case 'RAD_2':
-            if (length >= 40) {
-              this.logger.log('[d] rad2 type response');
-              util_data = buffer
-                .toString()
-                .substring(5, length + 1)
-                .split(';');
-              this.payload.created_at = new Date();
-              this.payload.total = util_data[0];
-              this.payload.unit = util_data[1];
-              this.payload.number_weightings = util_data[2];
-              this.payload.voucher_number = util_data[3];
-              this.payload.status = util_data[4];
-              this.payload.weight_last_stroke = util_data[5];
-              this.payload.date_last_stroke = util_data[6];
-              this.payload.time_last_stroke = util_data[7];
-              this.payload.current_weight_loading = util_data[8];
-              this.logger.log('result rad2: ', this.payload);
-              this.process.lastResponseDate(new Date());
-              this.process.pushEntity(this.payload);
-            }
+      if (buffer != null && buffer[0] === 0x02) {
+        const protocole_number = buffer[1];
+        const util_data = this.splitBufferwithSperator(
+          buffer.subarray(2, buffer.length - 1),
+          0x01,
+        );
+        this.logger.log('[d] util data', util_data);
+        switch (protocole_number) {
+          case 0x32:
+            this.godet_load.weight = util_data[0].toString();
+            this.godet_load.number = util_data[1].toString();
+            this.godet_load.voucher = util_data[2].toString();
+            this.logger.log('[d] à la fin de chargement de chaque Godet');
             break;
-          case 'VERSION':
-            this.logger.log('[d] version type response');
-            util_data = buffer.toString().substring(5);
-            this.payload.version = util_data;
-            this.logger.log('version : ', this.payload.version);
+          case 0x34:
+            this.error.message = util_data[0].toString();
+            this.error.value = util_data[1].toString();
+            this.logger.log('[d] Protocole Erreur');
             break;
-          case 'VERSION_PROTOCOLE':
-            this.logger.log('[d] version protcole type response');
-            util_data = buffer.toString().substring(5);
-            this.payload.version_protocole = util_data;
+          case 0x33:
+            this.finish.total_weight = util_data[0].toString();
+            this.finish.number_buckets = util_data[1].toString();
+            this.finish.voucher_number = util_data[2].toString();
+            this.finish.date = util_data[3].toString();
+            this.finish.clock_time = util_data[4].toString();
+            this.finish.total_price = util_data[5].toString();
+            this.finish.total_weight = util_data[6].toString();
             this.logger.log(
-              'protocole version',
-              this.payload.version_protocole,
+              '[d] à la fin de mission de chargement (Shift principalement',
             );
-          case 'SN':
-            this.logger.log('[d] sn type response');
-            util_data = buffer.toString().substring(5);
-            this.payload.sn = util_data;
-            this.logger.log('sn : ', this.payload.sn);
+          case 0x38:
+            this.finish_shift.total_weight = util_data[0].toString();
+            this.finish_shift.number_bucket = util_data[1].toString();
+            this.finish_shift.voucher_number = util_data[2].toString();
+            this.finish_shift.date = util_data[3].toString();
+            this.finish_shift.clock_time = util_data[4].toString();
+            this.finish_shift.total_price = util_data[5].toString();
+            this.finish_shift.costumer_name = util_data[6].toString();
+            this.finish_shift.costumer_number = util_data[7].toString();
+            this.finish_shift.material_name = util_data[8].toString();
+            this.finish_shift.material_number = util_data[9].toString();
+            this.finish_shift.building_name = util_data[10].toString();
+            this.finish_shift.building_number = util_data[11].toString();
+            this.finish_shift.driver_name = util_data[12].toString();
+            this.finish_shift.driver_number = util_data[13].toString();
+            this.finish_shift.vehicule_name = util_data[14].toString();
+            this.finish_shift.vehicule_number = util_data[15].toString();
+            this.finish_shift.container_name = util_data[16].toString();
+            this.finish_shift.container_number = util_data[17].toString();
+            this.logger.log(
+              '[d] à la fin de mission de chargement (Shift principalement',
+            );
           default:
             break;
         }
       }
     } catch (error) {
-      this.logger.error(error);
+      this.logger.log(error);
     }
   }
   sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
