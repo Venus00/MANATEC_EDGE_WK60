@@ -7,9 +7,10 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AlertModule } from './alert/alert.module';
 import { StatusModule } from './status/status.module';
 import { ProcessModule } from './process/process.module';
+import { Serial2Module } from './serial2/serial2.module';
 @Module({
   imports: [
-    ScheduleModule.forRoot(), MqttModule, ProcessModule, SerialModule, EventModule, PrismaModule, AlertModule, StatusModule],
+    ScheduleModule.forRoot(), MqttModule, ProcessModule, SerialModule, EventModule, PrismaModule, AlertModule, StatusModule, Serial2Module],
   controllers: [],
   providers: [],
 })

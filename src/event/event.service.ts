@@ -15,7 +15,16 @@ export class EventService {
       },
     });
   }
-
+  async findManyHealthEvents() {
+    return await this.prisma.health.findMany();
+  }
+  async createHealth(health: string) {
+    await this.prisma.health.create({
+      data: {
+        health,
+      },
+    });
+  }
   async createEvent(data: any) {
     return this.prisma.event.create({
       data: data,

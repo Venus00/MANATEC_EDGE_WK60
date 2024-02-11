@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import * as mqtt from 'mqtt';
 import { SerialService } from 'src/serial/serial.service';
-import { commands } from 'src/serial/commands';
 import { execSync } from 'child_process';
 @Injectable()
 export class MqttService implements OnModuleInit {
@@ -17,6 +16,7 @@ export class MqttService implements OnModuleInit {
   private TOPIC_SUBSCRIBE: string;
   private TOPIC_PUBLISH_PAYLOAD: string;
   private TOPIC_PUBLISH_ALERTE: string;
+  private TOPIC_PUBLISH_HEALTH: string;
   private TOPIC_PUBLISH_STATUS: string;
   protected total_event: number = 0;
   protected total_alert: number = 0;
@@ -41,6 +41,7 @@ export class MqttService implements OnModuleInit {
     );
     this.TOPIC_PUBLISH_ALERTE = process.env.TOPIC_ALERT.replace('+', this.mac);
     this.TOPIC_PUBLISH_STATUS = process.env.TOPIC_STATUS.replace('+', this.mac);
+    this.TOPIC_PUBLISH_HEALTH = process.env.TOPIC_HEALRH.replace('+', this.mac);
     this.client = mqtt.connect(`mqtt://${process.env.MQTT_SERVER}`, {
       clientId: this.mac,
       username: this.mac,
@@ -64,6 +65,10 @@ export class MqttService implements OnModuleInit {
     this.logger.log(this.TOPIC_PUBLISH_STATUS);
     this.client.publish(this.TOPIC_PUBLISH_STATUS, message);
   }
+  publishHealth(message: string) {
+    this.logger.log(this.TOPIC_PUBLISH_HEALTH);
+    this.client.publish(this.TOPIC_PUBLISH_HEALTH, message);
+  }
   publishPayload(message: string) {
     this.client.publish(this.TOPIC_PUBLISH_PAYLOAD, message);
   }
@@ -77,20 +82,16 @@ export class MqttService implements OnModuleInit {
   onMessage(topic: string, message: string) {
     try {
       const payload = JSON.parse(message);
-      if (commands.hasOwnProperty(payload.command)) {
-        this.logger.log('[i] sending command ...');
-        this.serial.write(commands[payload.command]);
+
+      if (payload.type === 'DATETIME') {
+        this.logger.log('set Datetime');
+        this.serial.write(Buffer.from(payload.command));
+      } else if (payload.type === 'DELTA') {
+        // if (payload.command < 150000 && payload.command > 1) {
+        //   this.serial.changehandleRequestJob(payload.command.toString());
+        // }
       } else {
-        if (payload.type === 'DATETIME') {
-          this.logger.log('set Datetime');
-          this.serial.write(Buffer.from(payload.command));
-        } else if (payload.type === 'DELTA') {
-          if (payload.command < 150000 && payload.command > 1) {
-            this.serial.changehandleRequestJob(payload.command.toString());
-          }
-        } else {
-          this.logger.log('command not exist');
-        }
+        this.logger.log('command not exist');
       }
     } catch (error) {
       this.logger.error(error);

@@ -40,3 +40,9 @@ model Status {
   total_alert   Int
   last_log_date DateTime?
 }
+
+model Health {
+  id         Int      @id @default(autoincrement())
+  health     String
+  created_at DateTime @default(now())
+}

@@ -17,6 +17,7 @@ export interface STATUS {
   mac: string;
   shutdown_counter: number;
   last_log_date: Date | undefined;
+  last_response_date: Date | undefined;
 }
 @Injectable()
 export class ProcessService implements OnModuleInit {
@@ -32,6 +33,7 @@ export class ProcessService implements OnModuleInit {
     ip: '',
     mac: '',
     shutdown_counter: 0,
+    last_response_date: undefined,
   };
 
   constructor(
@@ -149,8 +151,29 @@ export class ProcessService implements OnModuleInit {
       this.logger.log('connection problem');
     }
   }
+  lastReplyHealth(date: Date) {
+    this.status.last_response_date = date;
+  }
   lastResponseDate(date: Date) {
     this.last_sent = date;
+  }
+  async pushALert(payload) {
+    if (this.mqtt.getConnectionState()) {
+      this.logger.log('connection is good published');
+      this.mqtt.publishAlert(JSON.stringify(payload));
+    } else if (this.saveFlag) {
+      this.logger.log('save in database');
+      await this.alert.create(JSON.parse(payload));
+    }
+  }
+  async pushHealth(payload) {
+    if (this.mqtt.getConnectionState()) {
+      this.logger.log('connection is good published');
+      this.mqtt.publishHealth(JSON.stringify(payload));
+    } else if (this.saveFlag) {
+      this.logger.log('save in database');
+      await this.event.createHealth(payload);
+    }
   }
   async pushEntity(payload) {
     if (this.mqtt.getConnectionState()) {
