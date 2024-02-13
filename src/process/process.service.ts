@@ -47,6 +47,13 @@ export class ProcessService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
+    await this.statusService.createIfNotExist({
+      total_alert: 0,
+      total_event: 0,
+      delta: 60 * 4 * 1000,
+      shut: 0,
+      engine_status: '',
+    });
     const statusFromDb = await this.statusService.get();
     this.logger.log('status from db  : ', statusFromDb);
     this.status.delta_time = statusFromDb.delta;
