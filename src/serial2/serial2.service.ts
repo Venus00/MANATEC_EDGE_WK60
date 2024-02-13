@@ -4,7 +4,6 @@ import { DelimiterParser } from '@serialport/parser-delimiter';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { ProcessService } from 'src/process/process.service';
 import { Alert } from 'src/alert/alert';
-import * as fs from 'fs';
 import {
   health,
   health_machine,
@@ -195,6 +194,7 @@ export class Serial2Service implements OnModuleInit {
               break;
           }
         } else if ((buffer[0] | (buffer[1] << 8)) === 0x016a) {
+          console.log('[d] vims still active');
           //vims still active update last replay date
           this.process.lastReplyHealth(new Date());
         }
