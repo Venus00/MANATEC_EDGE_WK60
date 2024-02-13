@@ -129,6 +129,21 @@ export class ProcessService implements OnModuleInit {
           return;
         }
       }
+      const health = await this.event.findManyHealthEvents();
+      this.logger.log('health log', health.length);
+      if (health.length !== 0) {
+        this.status.total_event += health.length;
+      }
+      for (let i = 0; i < health.length; i++) {
+        if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0']) {
+          this.mqtt.publishPayload(JSON.stringify(health[i]));
+          this.logger.log('[d] delete health');
+          await this.event.delete(health[i].id);
+        } else {
+          this.logger.error('[d] BROKER MQTT CONNECTION IS LOST');
+          return;
+        }
+      }
       const alerts = await this.alert.getAll();
 
       this.logger.log('alert from db', alerts.length);
