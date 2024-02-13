@@ -69,11 +69,11 @@ export class Serial2Service implements OnModuleInit {
     }
   }
   write(data: Buffer) {
-    try {
+    // try {
       this.reader.write(data);
-    } catch (error) {
-      this.logger.log('error writing');
-    }
+    // } catch (error) {
+    //   this.logger.log('error writing');
+    // }
   }
 
   async handleRequestJob() {
