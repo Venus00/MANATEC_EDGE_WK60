@@ -169,28 +169,36 @@ export class Serial2Service implements OnModuleInit {
           console.log(error);
           switch (error) {
             case 0x0001:
-              this.process.pushALert({
-                ...Alert.INVALID_RPC_ID,
-                created_at: new Date(),
-              });
+              this.process.pushALert(
+                JSON.stringify({
+                  ...Alert.INVALID_RPC_ID,
+                  created_at: new Date(),
+                }),
+              );
               break;
             case 0x0002:
-              this.process.pushALert({
-                ...Alert.ERROR_ARGUMENT,
-                created_at: new Date(),
-              });
+              this.process.pushALert(
+                JSON.stringify({
+                  ...Alert.ERROR_ARGUMENT,
+                  created_at: new Date(),
+                }),
+              );
               break;
             case 0x0004:
-              this.process.pushALert({
-                ...Alert.ECM_NOT_READY,
-                created_at: new Date(),
-              });
+              this.process.pushALert(
+                JSON.stringify({
+                  ...Alert.ECM_NOT_READY,
+                  created_at: new Date(),
+                }),
+              );
               break;
             case 0x0005:
-              this.process.pushALert({
-                ...Alert.ECM_READY,
-                created_at: new Date(),
-              });
+              this.process.pushALert(
+                JSON.stringify({
+                  ...Alert.ECM_READY,
+                  created_at: new Date(),
+                }),
+              );
               break;
             default:
               break;
