@@ -38,20 +38,20 @@ export class Serial2Service implements OnModuleInit {
     this.logger.log('[d] init requesting from device ...');
     //this.starthandleRequestJob(this.process.getStatus().delta_time);
     //this.starthandleRequestJob(10);
-    this.current_sequence = '0001';
-    this.current_request_elements = this.getIDs(health_engine);
-    this.testData(
-      Buffer.from(
-        'ffff0001003E000F4700100041800000bf00000000000000470010003f3333334363000041f80000428600004700100047001000418800004700100041bc00004f80000009bfc0',
-        'hex',
-      ),
-    );
+    // this.current_sequence = '0001';
+    // this.current_request_elements = this.getIDs(health_engine);
+    // this.testData(
+    //   Buffer.from(
+    //     'ffff0001003E000F4700100041800000bf00000000000000470010003f3333334363000041f80000428600004700100047001000418800004700100041bc00004f80000009bfc0',
+    //     'hex',
+    //   ),
+    // );
   }
 
   init_device() {
     try {
       this.reader = new SerialPort({
-        path: '/dev/ttyS2',
+        path: '/dev/ttyS5',
         baudRate: 9600,
       });
       this.readerParser = this.reader.pipe(
@@ -145,72 +145,24 @@ export class Serial2Service implements OnModuleInit {
     }
     return result;
   }
-  testData(buffer: Buffer) {
-    //try {
-    console.log(buffer);
-    if (buffer != null) {
-      this.logger.log('buffer is not null');
-      this.logger.log(buffer[1]);
-      if ((buffer[0] | (buffer[1] << 8)) === 0xffff) {
-        this.logger.log('response data');
-        const sequence_number = buffer[3] | (buffer[2] << 8);
-        console.log(sequence_number);
-        if (sequence_number === parseInt(this.current_sequence, 16)) {
-          this.logger.log('sequence checked');
-          const number_of_bytes = buffer[7] | (buffer[6] << 8);
-          this.setResponseValues(buffer, number_of_bytes);
-          if (sequence_number === parseInt(this.current_sequence, 16)) {
-            this.process.pushHealth(JSON.stringify(this.health_data));
-            this.health_data = health;
-          }
-        }
-      } else if ((buffer[0] | (buffer[1] << 8)) === 0xfffd) {
-        const error = buffer[5] | (buffer[6] << 8);
-        switch (error) {
-          case 0x0001:
-            this.process.pushALert({
-              ...Alert.INVALID_RPC_ID,
-              created_at: new Date(),
-            });
-            break;
-          case 0x0002:
-            this.process.pushALert({
-              ...Alert.ERROR_ARGUMENT,
-              created_at: new Date(),
-            });
-            break;
-          case 0x0004:
-            this.process.pushALert({
-              ...Alert.ECM_NOT_READY,
-              created_at: new Date(),
-            });
-            break;
-          case 0x0005:
-            this.process.pushALert({
-              ...Alert.ECM_READY,
-              created_at: new Date(),
-            });
-            break;
-          default:
-            break;
-        }
-      } else if ((buffer[0] | (buffer[1] << 8)) === 0x016a) {
-        //vims still active update last replay date
-        this.process.lastReplyHealth(new Date());
-      }
-    }
-    // } catch (error) {
-    //   this.logger.log(error);
-    // }
-  }
   onReaderData(buffer: Buffer) {
     try {
+      console.log(buffer);
       if (buffer != null) {
+        this.logger.log('buffer is not null');
+        this.logger.log(buffer[1]);
         if ((buffer[0] | (buffer[1] << 8)) === 0xffff) {
-          const sequence_number = buffer[2] | (buffer[3] << 8);
+          this.logger.log('response data');
+          const sequence_number = buffer[3] | (buffer[2] << 8);
+          console.log(sequence_number);
           if (sequence_number === parseInt(this.current_sequence, 16)) {
-            this.setResponseValues(buffer, 0);
-            this.process.pushHealth(JSON.stringify(this.health_data));
+            this.logger.log('sequence checked');
+            const number_of_bytes = buffer[7] | (buffer[6] << 8);
+            this.setResponseValues(buffer, number_of_bytes);
+            if (sequence_number === parseInt(this.current_sequence, 16)) {
+              this.process.pushHealth(JSON.stringify(this.health_data));
+              this.health_data = health;
+            }
           }
         } else if ((buffer[0] | (buffer[1] << 8)) === 0xfffd) {
           const error = buffer[5] | (buffer[6] << 8);
@@ -251,6 +203,7 @@ export class Serial2Service implements OnModuleInit {
       this.logger.log(error);
     }
   }
+
   sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
   buildRequest(request_elements: any) {
