@@ -165,7 +165,7 @@ export class Serial2Service implements OnModuleInit {
           }
         } else if ((buffer[1] | (buffer[0] << 8)) === 0xfffd) {
           console.log('[d] error received');
-          const error = buffer[5] | (buffer[6] << 8);
+          const error = buffer[6] | (buffer[5] << 8);
           switch (error) {
             case 0x0001:
               this.process.pushALert({
