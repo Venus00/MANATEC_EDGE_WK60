@@ -163,7 +163,8 @@ export class Serial2Service implements OnModuleInit {
               this.health_data = health;
             }
           }
-        } else if ((buffer[0] | (buffer[1] << 8)) === 0xfffd) {
+        } else if ((buffer[1] | (buffer[0] << 8)) === 0xfffd) {
+          console.log('[d] error received');
           const error = buffer[5] | (buffer[6] << 8);
           switch (error) {
             case 0x0001:
@@ -193,7 +194,7 @@ export class Serial2Service implements OnModuleInit {
             default:
               break;
           }
-        } else if ((buffer[0] | (buffer[1] << 8)) === 0x016a) {
+        } else if ((buffer[1] | (buffer[0] << 8)) === 0x016a) {
           console.log('[d] vims still active');
           //vims still active update last replay date
           this.process.lastReplyHealth(new Date());
