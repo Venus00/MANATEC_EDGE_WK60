@@ -159,7 +159,7 @@ export class Serial2Service implements OnModuleInit {
             this.logger.log('sequence checked');
             const number_of_bytes = buffer[7] | (buffer[6] << 8);
             this.setResponseValues(buffer, number_of_bytes);
-            if (sequence_number === parseInt(this.current_sequence, 16)) {
+            if (sequence_number === parseInt('0003', 16)) {
               this.process.pushHealth(JSON.stringify(this.health_data));
               this.health_data = health;
             }
