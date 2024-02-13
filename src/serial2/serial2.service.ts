@@ -34,7 +34,7 @@ export class Serial2Service implements OnModuleInit {
 
   async onModuleInit() {
     this.logger.log('[d] init connection with Device ...');
-    //this.init_device();
+    this.init_device();
     this.logger.log('[d] init requesting from device ...');
     this.starthandleRequestJob(this.process.getStatus().delta_time);
     //this.starthandleRequestJob(10);
@@ -69,11 +69,11 @@ export class Serial2Service implements OnModuleInit {
     }
   }
   write(data: Buffer) {
-    // try {
+    try {
       this.reader.write(data);
-    // } catch (error) {
-    //   this.logger.log('error writing');
-    // }
+    } catch (error) {
+      this.logger.log('error writing');
+    }
   }
 
   async handleRequestJob() {
