@@ -36,7 +36,7 @@ export class Serial2Service implements OnModuleInit {
     this.logger.log('[d] init connection with Device ...');
     //this.init_device();
     this.logger.log('[d] init requesting from device ...');
-    //this.starthandleRequestJob(this.process.getStatus().delta_time);
+    this.starthandleRequestJob(this.process.getStatus().delta_time);
     //this.starthandleRequestJob(10);
     // this.current_sequence = '0001';
     // this.current_request_elements = this.getIDs(health_engine);
