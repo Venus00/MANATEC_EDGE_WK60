@@ -32,13 +32,15 @@ model Alert {
 }
 
 model Status {
-  id            Int       @id @default(autoincrement())
-  name          String    @unique
-  delta         Int
-  shut          Int
-  total_event   Int
-  total_alert   Int
-  last_log_date DateTime?
+  id                      Int       @id @default(autoincrement())
+  name                    String    @unique
+  delta                   Int
+  shut                    Int
+  total_event             Int
+  total_alert             Int
+  last_log_date           DateTime?
+  last_response_date_vims DateTime?
+  engine_status           String
 }
 
 model Health {

@@ -17,13 +17,15 @@ export interface STATUS {
   mac: string;
   shutdown_counter: number;
   last_log_date: Date | undefined;
-  last_response_date: Date | undefined;
+  last_response_date_vims: Date | undefined;
+  engine_status: string;
 }
 @Injectable()
 export class ProcessService implements OnModuleInit {
   private logger = new Logger(ProcessService.name);
   private saveFlag = true;
   private last_sent = new Date();
+  private health_engine: any;
   private status: STATUS = {
     storage: '',
     total_alert: 0,
@@ -33,7 +35,8 @@ export class ProcessService implements OnModuleInit {
     ip: '',
     mac: '',
     shutdown_counter: 0,
-    last_response_date: undefined,
+    last_response_date_vims: undefined,
+    engine_status: '',
   };
 
   constructor(
@@ -44,12 +47,6 @@ export class ProcessService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    await this.statusService.createIfNotExist({
-      total_alert: 0,
-      total_event: 0,
-      delta: 90,
-      shut: 0,
-    });
     const statusFromDb = await this.statusService.get();
     this.logger.log('status from db  : ', statusFromDb);
     this.status.delta_time = statusFromDb.delta;
@@ -57,18 +54,24 @@ export class ProcessService implements OnModuleInit {
     this.status.last_log_date = statusFromDb.last_log_date;
     this.status.total_alert = statusFromDb.total_alert;
     this.status.total_event = statusFromDb.total_event;
+    this.status.last_response_date_vims = statusFromDb.last_response_date_vims;
+    this.status.engine_status = statusFromDb.engine_status;
     await this.statusService.updateShutDownCount(
       this.status.shutdown_counter + 1,
     );
-    this.status.storage = execSync(`df -h /data | awk 'NR==2 {print $4}'`)
-      .toString()
-      .replace(/\n/g, '');
-    this.status.mac = execSync(
-      `ifconfig wlan0 | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'`,
-    )
-      .toString()
-      .replaceAll(':', '')
-      .trim();
+    try {
+      this.status.storage = execSync(`df -h /data | awk 'NR==2 {print $4}'`)
+        .toString()
+        .replace(/\n/g, '');
+      this.status.mac = execSync(
+        `ifconfig wlan0 | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'`,
+      )
+        .toString()
+        .replaceAll(':', '')
+        .trim();
+    } catch (error) {
+      this.logger.error(error);
+    }
 
     setInterval(async () => {
       await this.pushStatus();
@@ -83,14 +86,20 @@ export class ProcessService implements OnModuleInit {
 
   @Cron(CronExpression.EVERY_10_MINUTES)
   checkSystemStorage() {
-    const storage = execSync(`df -h /data | awk 'NR==2 {print $4}'`).toString();
-    this.status.storage = storage.replace(/\n/g, '');
-    const typeKB = storage.includes('K');
-    const sizeValue = +storage.replace(/[GMK]/gi, '');
-    if (typeKB && sizeValue < 300) {
-      this.saveFlag = false;
-    } else {
-      this.saveFlag = true;
+    try {
+      const storage = execSync(
+        `df -h /data | awk 'NR==2 {print $4}'`,
+      ).toString();
+      this.status.storage = storage.replace(/\n/g, '');
+      const typeKB = storage.includes('K');
+      const sizeValue = +storage.replace(/[GMK]/gi, '');
+      if (typeKB && sizeValue < 300) {
+        this.saveFlag = false;
+      } else {
+        this.saveFlag = true;
+      }
+    } catch (error) {
+      this.logger.error(error);
     }
   }
 
@@ -151,8 +160,11 @@ export class ProcessService implements OnModuleInit {
       this.logger.log('connection problem');
     }
   }
+  engineHealth(obj: any) {
+    this.health_engine = obj;
+  }
   lastReplyHealth(date: Date) {
-    this.status.last_response_date = date;
+    this.status.last_response_date_vims = date;
   }
   lastResponseDate(date: Date) {
     this.last_sent = date;
@@ -193,14 +205,40 @@ export class ProcessService implements OnModuleInit {
   async checkALert() {
     try {
       if (
-        new Date().getTime() - this.last_sent.getTime() >
-        this.status.delta_time * 1000
+        new Date().getTime() - this.last_sent.getTime() > 40 * 60 * 1000 &&
+        parseInt(this.health_engine?.TR005.value) > 700
       ) {
-        this.logger.log('this reader is connected but not sending data');
+        this.logger.log('this PAYLOAD is connected but not sending data');
         if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0']) {
           this.mqtt.publishAlert(
             JSON.stringify({
               ...Alert.DEVICE,
+              created_at: new Date(),
+            }),
+          );
+        } else if (this.saveFlag) {
+          this.logger.log('insert alert no device communication');
+
+          await this.alert.create({
+            ...Alert.DEVICE,
+          });
+        }
+      }
+      if (
+        new Date().getTime() - this.status.last_response_date_vims.getTime() >
+        4 * 60 * 1000
+      ) {
+        this.logger.log('this ECM is connected but not sending data');
+        if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0']) {
+          this.mqtt.publishAlert(
+            JSON.stringify({
+              ...Alert.ECM_NOT_RESPONDING,
+              created_at: new Date(),
+            }),
+          );
+          this.mqtt.publishAlert(
+            JSON.stringify({
+              ...Alert.ECM_MESSAGE_ERROR,
               created_at: new Date(),
             }),
           );

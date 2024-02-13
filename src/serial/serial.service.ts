@@ -72,7 +72,7 @@ export class SerialService implements OnModuleInit {
 
   async onModuleInit() {
     this.logger.log('[d] init connection with Device ...');
-    this.init_device();
+    //this.init_device();
     this.logger.log('[d] init requesting from device ...');
     //this.starthandleRequestJob(this.process.getStatus().delta_time);
   }
@@ -170,6 +170,7 @@ export class SerialService implements OnModuleInit {
   onReaderData(buffer: Buffer) {
     try {
       if (buffer != null && buffer[0] === 0x02) {
+        this.process.lastResponseDate(new Date());
         const protocole_number = buffer[1];
         const util_data = this.splitBufferwithSperator(
           buffer.subarray(2, buffer.length - 1),

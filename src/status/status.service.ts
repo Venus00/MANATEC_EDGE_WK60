@@ -6,6 +6,8 @@ interface Status {
   shut: number;
   delta: number;
   last_log_date?: Date;
+  last_response_date_vims?: Date;
+  engine_status: string;
 }
 @Injectable()
 export class StatusService {

@@ -27,12 +27,17 @@ export class MqttService implements OnModuleInit {
 
   async onModuleInit() {
     this.logger.log(process.env.MQTT_SERVER);
-    this.mac = execSync(
-      `ifconfig wlan0 | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'`,
-    )
-      .toString()
-      .replaceAll(':', '')
-      .trim();
+    try {
+      this.mac = execSync(
+        `ifconfig wlan0 | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'`,
+      )
+        .toString()
+        .replaceAll(':', '')
+        .trim();
+    } catch (error) {
+      this.logger.error(error);
+    }
+
     this.logger.log('mac', this.mac);
     this.TOPIC_SUBSCRIBE = process.env.TOPIC_SUBSCRIBE.replace('+', this.mac);
     this.TOPIC_PUBLISH_PAYLOAD = process.env.TOPIC_PUBLISH.replace(
@@ -41,7 +46,7 @@ export class MqttService implements OnModuleInit {
     );
     this.TOPIC_PUBLISH_ALERTE = process.env.TOPIC_ALERT.replace('+', this.mac);
     this.TOPIC_PUBLISH_STATUS = process.env.TOPIC_STATUS.replace('+', this.mac);
-    this.TOPIC_PUBLISH_HEALTH = process.env.TOPIC_HEALRH.replace('+', this.mac);
+    this.TOPIC_PUBLISH_HEALTH = process.env.TOPIC_HEALTH.replace('+', this.mac);
     this.client = mqtt.connect(`mqtt://${process.env.MQTT_SERVER}`, {
       clientId: this.mac,
       username: this.mac,
