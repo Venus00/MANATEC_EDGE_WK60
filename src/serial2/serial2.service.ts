@@ -23,6 +23,7 @@ export class Serial2Service implements OnModuleInit {
   private current_sequence: string;
   private current_data_number: string;
   private current_request_elements;
+  private current_request_elements_key;
   private readonly logger = new Logger(Serial2Service.name);
   private job;
   private health_data = health;
@@ -93,9 +94,9 @@ export class Serial2Service implements OnModuleInit {
   }
 
   request(config_object: any, index: number) {
-    const ids = this.getIDs(config_object);
+    this.current_request_elements = this.getIDs(config_object);
+    this.current_request_elements_key = this.getEntity(config_object);
     this.current_sequence = `000${index}`;
-    this.current_request_elements = ids;
     //this.logger.log(this.current_request_elements);
     const request = this.buildRequest(this.current_request_elements);
     // fs.appendFileSync('test.log', request.toString('hex') + '\n');
@@ -244,15 +245,18 @@ export class Serial2Service implements OnModuleInit {
         buffer[10 + 4 * i],
         buffer[11 + 4 * i],
       ]).readFloatBE();
-      Object.keys(this.health_data).forEach((item) => {
-        if (
-          this.health_data[item].mid_uid === this.current_request_elements[i]
-        ) {
-          this.health_data[item].value = response;
+      Object.entries(this.health_data).forEach((item) => {
+        if (item[0] === this.current_request_elements_key[i]) {
+          this.health_data[item[0]].value = response;
         }
       });
     }
     this.logger.log(this.health_data);
+  }
+  getEntity(object: any) {
+    return Object.entries(object).map((item: any) => {
+      return item[0];
+    });
   }
   getIDs(object: any) {
     return Object.entries(object).map((item: any) => {

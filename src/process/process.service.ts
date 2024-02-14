@@ -136,7 +136,12 @@ export class ProcessService implements OnModuleInit {
       }
       for (let i = 0; i < health.length; i++) {
         if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0']) {
-          this.mqtt.publishPayload(JSON.stringify(health[i]));
+          this.mqtt.publishPayload(
+            JSON.stringify({
+              ...JSON.parse(health[i].health),
+              created_at: health[i].created_at,
+            }),
+          );
           this.logger.log('[d] delete health');
           await this.event.delete(health[i].id);
         } else {
