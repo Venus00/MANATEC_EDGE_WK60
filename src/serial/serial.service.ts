@@ -184,9 +184,9 @@ export class SerialService implements OnModuleInit {
         this.clear_payload();
         switch (protocole_number) {
           case 0x32:
-            this.payload.current_weighting = util_data[0].toString();
-            this.payload.number_bucket = util_data[1].toString();
-            this.payload.voucher_number = util_data[2].toString();
+            this.payload.current_weighting = util_data[0].toString('ascii');
+            this.payload.number_bucket = util_data[1].toString('ascii');
+            this.payload.voucher_number = util_data[2].toString('ascii');
             this.logger.log('[d] à la fin de chargement de chaque Godet');
             break;
           case 0x34:
@@ -237,7 +237,7 @@ export class SerialService implements OnModuleInit {
           default:
             break;
         }
-        this.process.pushEntity(JSON.stringify(this.payload));
+        //this.process.pushEntity(JSON.stringify(this.payload));
       }
     } catch (error) {
       this.logger.log(error);
