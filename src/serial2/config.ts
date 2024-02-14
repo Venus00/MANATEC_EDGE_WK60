@@ -329,7 +329,6 @@ export const health_machine = {
 
 export const health = {
   EN001: {
-    mid_uid: '002400010050',
     name: 'Air Filter Restriction',
     unit: 'kPa',
     type: 'Engine',
