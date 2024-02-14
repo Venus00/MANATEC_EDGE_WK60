@@ -143,7 +143,7 @@ export class ProcessService implements OnModuleInit {
             }),
           );
           this.logger.log('[d] delete health');
-          await this.event.delete(health[i].id);
+          await this.event.deleteHealth(health[i].id);
         } else {
           this.logger.error('[d] BROKER MQTT CONNECTION IS LOST');
           return;
