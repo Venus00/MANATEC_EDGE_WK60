@@ -175,7 +175,7 @@ export class SerialService implements OnModuleInit {
       if (buffer != null && buffer[0] === 0x02) {
         this.process.lastResponseDate(new Date());
         const protocole_number = buffer[1];
-        console.log(buffer.subarray(3, buffer.length));
+        console.log(buffer);
         const util_data = this.splitBufferwithSperator(
           buffer.subarray(3, buffer.length),
           0x01,
@@ -185,13 +185,13 @@ export class SerialService implements OnModuleInit {
         this.clear_payload();
         switch (protocole_number) {
           case 0x32:
-            this.payload.current_weighting = util_data[0].toString('ascii');
-            this.payload.number_bucket = util_data[1].toString('ascii');
-            this.payload.voucher_number = util_data[2].toString('ascii');
+            this.payload.current_weighting = util_data[0];
+            this.payload.number_bucket = util_data[1];
+            this.payload.voucher_number = util_data[2];
             this.logger.log('[d] à la fin de chargement de chaque Godet');
             break;
           case 0x34:
-            this.payload.error_message = errros[util_data[1].toString('ascii')];
+            this.payload.error_message = errros[util_data[1]];
             this.payload.error_value = util_data[1].toString();
             this.logger.log('[d] Protocole Erreur');
             this.process.pushALert(
@@ -238,7 +238,7 @@ export class SerialService implements OnModuleInit {
           default:
             break;
         }
-        this.process.pushEntity(JSON.stringify(this.payload));
+        //this.process.pushEntity(JSON.stringify(this.payload));
       }
     } catch (error) {
       this.logger.log(error);
