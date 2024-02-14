@@ -238,7 +238,7 @@ export class SerialService implements OnModuleInit {
           default:
             break;
         }
-        this.process.pushEntity(this.payload);
+        this.process.pushEntity(JSON.stringify(this.payload));
       }
     } catch (error) {
       this.logger.log(error);

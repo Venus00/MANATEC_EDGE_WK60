@@ -209,13 +209,13 @@ export class ProcessService implements OnModuleInit {
       await this.event.createHealth(payload);
     }
   }
-  async pushEntity(payload) {
+  async pushEntity(payload: string) {
     if (this.mqtt.getConnectionState()) {
       this.logger.log('connection is good published');
-      this.mqtt.publishPayload(JSON.stringify(payload));
+      this.mqtt.publishPayload(payload);
     } else if (this.saveFlag) {
       this.logger.log('save in database');
-      await this.event.createEvent(JSON.parse(payload));
+      await this.event.createEvent(payload);
       this.status.last_log_date = new Date();
       await this.statusService.updateLogDate(this.status.last_log_date);
     }

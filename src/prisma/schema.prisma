@@ -8,20 +8,9 @@ generator client {
 }
 
 model Event {
-  id                     Int      @id @default(autoincrement())
-  version                String?
-  version_protocole      String?
-  sn                     String?
-  total                  String
-  unit                   String
-  number_weightings      String
-  voucher_number         String
-  status                 String
-  weight_last_stroke     String
-  date_last_stroke       String
-  time_last_stroke       String
-  current_weight_loading String
-  created_at             DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  event      String
+  created_at DateTime @default(now())
 }
 
 model Alert {
