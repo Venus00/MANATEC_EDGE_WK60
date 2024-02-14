@@ -164,10 +164,10 @@ export class SerialService implements OnModuleInit {
           current_byte = [];
         }
       } else {
-        current_byte.push(decoder.decode(Buffer.from(current_byte)));
+        current_byte.push(buffer[i]);
       }
     }
-    result.push(current_byte);
+    result.push(decoder.decode(Buffer.from(current_byte)));
     return result;
   }
   onReaderData(buffer: Buffer) {
