@@ -171,7 +171,7 @@ export class SerialService implements OnModuleInit {
   returnFrame(buffer: Buffer) {
     for (let i = 0; i < buffer.length; i++) {
       if (buffer[i] === 0x02) {
-        return buffer.subarray(i, buffer.length);
+        return buffer.subarray(i + 1, buffer.length);
       }
     }
   }
