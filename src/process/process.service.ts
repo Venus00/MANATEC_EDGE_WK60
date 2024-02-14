@@ -205,7 +205,7 @@ export class ProcessService implements OnModuleInit {
       await this.alert.create(JSON.parse(payload));
     }
   }
-  async pushHealth(payload) {
+  async pushHealth(payload: any) {
     if (this.mqtt.getConnectionState()) {
       this.logger.log('connection is good published');
       const obj = {
