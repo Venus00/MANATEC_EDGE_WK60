@@ -157,13 +157,13 @@ export class SerialService implements OnModuleInit {
     let current_byte = [];
     for (let i = 0; i < buffer.length; i++) {
       if (buffer[i] === seprator) {
-        console.log(current_byte)
+        console.log(current_byte);
         if (current_byte.length > 0) {
           result.push(current_byte);
           current_byte = [];
-        } else {
-          current_byte.push(buffer[i]);
         }
+      } else {
+        current_byte.push(buffer[i]);
       }
     }
     return result;
@@ -178,7 +178,7 @@ export class SerialService implements OnModuleInit {
           buffer.subarray(2, buffer.length),
           0x01,
         );
-        console.log(util_data)
+        console.log(util_data);
         this.logger.log('[d] util data', util_data);
         this.clear_payload();
         switch (protocole_number) {
