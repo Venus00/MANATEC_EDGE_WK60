@@ -83,6 +83,7 @@ export class SerialService implements OnModuleInit {
         path: '/dev/ttyS0',
         baudRate: 9600,
       });
+      
       this.readerParser = this.reader.pipe(
         new DelimiterParser({
           delimiter: [0x03],
