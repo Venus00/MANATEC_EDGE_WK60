@@ -153,17 +153,18 @@ export class SerialService implements OnModuleInit {
     this.logger.error('PORT CLOSED');
   }
   splitBufferwithSperator(buffer, seprator) {
+    const decoder = new TextDecoder('ascii');
     const result = [];
     let current_byte = [];
     for (let i = 0; i < buffer.length; i++) {
       if (buffer[i] === seprator) {
         console.log(current_byte);
         if (current_byte.length > 0) {
-          result.push(new Uint8Array(current_byte).toString());
+          result.push(decoder.decode(new Uint8Array(current_byte)));
           current_byte = [];
         }
       } else {
-        current_byte.push(buffer[i]);
+        current_byte.push(decoder.decode(new Uint8Array(current_byte)));
       }
     }
     result.push(current_byte);
