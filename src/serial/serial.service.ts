@@ -172,6 +172,7 @@ export class SerialService implements OnModuleInit {
       if (buffer != null && buffer[0] === 0x02) {
         this.process.lastResponseDate(new Date());
         const protocole_number = buffer[1];
+        console.log(buffer)
         console.log(protocole_number);
         console.log(buffer.subarray(2, buffer.length - 1));
         const util_data = this.splitBufferwithSperator(
