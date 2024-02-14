@@ -6,7 +6,6 @@ import { ProcessService } from 'src/process/process.service';
 import { errros } from './config';
 import { Alert } from 'src/alert/alert';
 interface PAYLOAD {
-  created_at: Date;
   version_protocole: string;
   total_weight: string;
   number_bucket: string;
@@ -40,7 +39,6 @@ export class SerialService implements OnModuleInit {
   private job;
   private command_type: string;
   private payload: PAYLOAD = {
-    created_at: new Date(),
     version_protocole: '',
     total_weight: '',
     number_bucket: '',

@@ -25,11 +25,9 @@ export class EventService {
       },
     });
   }
-  async createEvent(event: string) {
+  async createEvent(data: any) {
     return this.prisma.event.create({
-      data: {
-        event,
-      },
+      data,
     });
   }
 }
