@@ -177,6 +177,7 @@ export class SerialService implements OnModuleInit {
   }
   onReaderData(data: Buffer) {
     try {
+      console.log(data);
       const buffer = this.returnFrame(data);
       console.log(buffer);
       if (buffer != null && buffer[0] === 0x02) {
