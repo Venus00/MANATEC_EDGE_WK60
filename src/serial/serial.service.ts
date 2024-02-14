@@ -168,8 +168,16 @@ export class SerialService implements OnModuleInit {
     result.push(decoder.decode(Buffer.from(current_byte)));
     return result;
   }
-  onReaderData(buffer: Buffer) {
+  returnFrame(buffer: Buffer) {
+    for (let i = 0; i < buffer.length; i++) {
+      if (buffer[i] === 0x02) {
+        return buffer.subarray(i, buffer.length);
+      }
+    }
+  }
+  onReaderData(data: Buffer) {
     try {
+      const buffer = this.returnFrame(data);
       if (buffer != null && buffer[0] === 0x02) {
         this.process.lastResponseDate(new Date());
         const protocole_number = buffer[1];
@@ -248,6 +256,7 @@ export class SerialService implements OnModuleInit {
     }
   }
   clear_payload() {
+    this.payload.version_protocole = '';
     this.payload.current_weighting = '';
     this.payload.number_bucket = '';
     this.payload.error_message = '';
