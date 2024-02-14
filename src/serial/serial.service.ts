@@ -159,14 +159,14 @@ export class SerialService implements OnModuleInit {
       if (buffer[i] === seprator) {
         console.log(current_byte);
         if (current_byte.length > 0) {
-          result.push(current_byte);
+          result.push(Buffer.from(current_byte));
           current_byte = [];
         }
       } else {
         current_byte.push(buffer[i]);
       }
     }
-    result.push(current_byte);
+    result.push(Buffer.from(current_byte));
     return result;
   }
   onReaderData(buffer: Buffer) {
