@@ -85,7 +85,7 @@ export class SerialService implements OnModuleInit {
       });
       this.readerParser = this.reader.pipe(
         new DelimiterParser({
-          delimiter: [0x03, 0x00, 0x00],
+          delimiter: [0x03],
           includeDelimiter: false,
         }),
       );
