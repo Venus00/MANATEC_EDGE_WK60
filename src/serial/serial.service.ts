@@ -192,7 +192,7 @@ export class SerialService implements OnModuleInit {
             break;
           case 0x34:
             this.payload.error_message = errros[util_data[1]];
-            this.payload.error_value = util_data[1].toString();
+            this.payload.error_value = util_data[1];
             this.logger.log('[d] Protocole Erreur');
             this.process.pushALert(
               JSON.stringify({
@@ -202,35 +202,35 @@ export class SerialService implements OnModuleInit {
             );
             break;
           case 0x33:
-            this.payload.total_weight = util_data[0].toString();
-            this.payload.number_bucket = util_data[1].toString();
-            this.payload.voucher_number = util_data[2].toString();
-            this.payload.date = util_data[3].toString();
-            this.payload.clock_time = util_data[4].toString();
-            this.payload.total_price = util_data[5].toString();
+            this.payload.total_weight = util_data[0];
+            this.payload.number_bucket = util_data[1];
+            this.payload.voucher_number = util_data[2];
+            this.payload.date = util_data[3];
+            this.payload.clock_time = util_data[4];
+            this.payload.total_price = util_data[5];
             this.logger.log(
               '[d] à la fin de mission de chargement (Shift principalement',
             );
             break;
           case 0x38:
-            this.payload.total_weight = util_data[0].toString();
-            this.payload.number_bucket = util_data[1].toString();
-            this.payload.voucher_number = util_data[2].toString();
-            this.payload.date = util_data[3].toString();
-            this.payload.clock_time = util_data[4].toString();
-            this.payload.total_price = util_data[5].toString();
-            this.payload.costumer_name = util_data[6].toString();
-            this.payload.costumer_number = util_data[7].toString();
-            this.payload.material_name = util_data[8].toString();
-            this.payload.material_number = util_data[9].toString();
-            this.payload.building_name = util_data[10].toString();
-            this.payload.building_number = util_data[11].toString();
-            this.payload.driver_name = util_data[12].toString();
-            this.payload.driver_number = util_data[13].toString();
-            this.payload.vehicule_name = util_data[14].toString();
-            this.payload.vehicule_number = util_data[15].toString();
-            this.payload.container_name = util_data[16].toString();
-            this.payload.container_number = util_data[17].toString();
+            this.payload.total_weight = util_data[0];
+            this.payload.number_bucket = util_data[1];
+            this.payload.voucher_number = util_data[2];
+            this.payload.date = util_data[3];
+            this.payload.clock_time = util_data[4];
+            this.payload.total_price = util_data[5];
+            this.payload.costumer_name = util_data[6];
+            this.payload.costumer_number = util_data[7];
+            this.payload.material_name = util_data[8];
+            this.payload.material_number = util_data[9];
+            this.payload.building_name = util_data[10];
+            this.payload.building_number = util_data[11];
+            this.payload.driver_name = util_data[12];
+            this.payload.driver_number = util_data[13];
+            this.payload.vehicule_name = util_data[14];
+            this.payload.vehicule_number = util_data[15];
+            this.payload.container_name = util_data[16];
+            this.payload.container_number = util_data[17];
             this.logger.log(
               '[d] à la fin de mission de chargement (Shift principalement',
             );
@@ -238,7 +238,7 @@ export class SerialService implements OnModuleInit {
           default:
             break;
         }
-        //this.process.pushEntity(JSON.stringify(this.payload));
+        this.process.pushEntity(this.payload);
       }
     } catch (error) {
       this.logger.log(error);
