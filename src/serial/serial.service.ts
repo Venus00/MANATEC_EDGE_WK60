@@ -5,6 +5,8 @@ import { SchedulerRegistry } from '@nestjs/schedule';
 import { ProcessService } from 'src/process/process.service';
 import { errros } from './config';
 import { Alert } from 'src/alert/alert';
+import * as moment from 'moment';
+import { exec } from 'child_process';
 interface PAYLOAD {
   version_protocole: string;
   total_weight: string;
@@ -37,6 +39,7 @@ export class SerialService implements OnModuleInit {
   private readerParser;
   private readonly logger = new Logger(SerialService.name);
   private job;
+  private current_total: number = 0;
   private command_type: string;
   private payload: PAYLOAD = {
     version_protocole: '',
@@ -197,6 +200,8 @@ export class SerialService implements OnModuleInit {
         switch (protocole_number) {
           case 0x32:
             this.payload.current_weighting = util_data[0];
+            this.current_total += parseInt(util_data[0]);
+            this.payload.total_weight = this.current_total.toString();
             this.payload.number_bucket = util_data[1];
             this.payload.voucher_number = util_data[2];
             this.logger.log('[d] à la fin de chargement de chaque Godet');
@@ -215,6 +220,7 @@ export class SerialService implements OnModuleInit {
             );
             break;
           case 0x33:
+            this.current_total = 0;
             this.payload.total_weight = util_data[0];
             this.payload.number_bucket = util_data[1];
             this.payload.voucher_number = util_data[2];
@@ -226,6 +232,7 @@ export class SerialService implements OnModuleInit {
             );
             break;
           case 0x38:
+            this.current_total = 0;
             this.payload.total_weight = util_data[0];
             this.payload.number_bucket = util_data[1];
             this.payload.voucher_number = util_data[2];
@@ -244,6 +251,7 @@ export class SerialService implements OnModuleInit {
             this.payload.vehicule_number = util_data[15];
             this.payload.container_name = util_data[16];
             this.payload.container_number = util_data[17];
+            this.setRtcTime(this.payload.date, this.payload.clock_time);
             this.logger.log(
               '[d] à la fin de mission de chargement (Shift principalement',
             );
@@ -256,6 +264,13 @@ export class SerialService implements OnModuleInit {
     } catch (error) {
       this.logger.log(error);
     }
+  }
+  setRtcTime(date: string, time: string) {
+    exec(
+      `sudo timedatectl set-time ${moment(`${date} ${time}`).format(
+        'YYYY-MM-DD hh:mm:ss',
+      )}`,
+    );
   }
   clear_payload() {
     this.payload.version_protocole = '';
