@@ -178,6 +178,7 @@ export class SerialService implements OnModuleInit {
   onReaderData(data: Buffer) {
     try {
       const buffer = this.returnFrame(data);
+      console.log(buffer);
       if (buffer != null && buffer[0] === 0x02) {
         this.process.lastResponseDate(new Date());
         const protocole_number = buffer[1];
