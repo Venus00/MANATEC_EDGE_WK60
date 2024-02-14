@@ -206,7 +206,7 @@ export class Serial2Service implements OnModuleInit {
           }
         } else if ((buffer[1] | (buffer[0] << 8)) === 0x016a) {
           console.log('[d] vims still active');
-          //vims still active update last replay date
+          //vims still active update last replay datep
           this.process.lastReplyHealth(new Date());
         }
       }

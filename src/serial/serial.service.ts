@@ -192,6 +192,8 @@ export class SerialService implements OnModuleInit {
             this.payload.error_message = errros[util_data[1]];
             this.payload.error_value = util_data[1];
             this.logger.log('[d] Protocole Erreur');
+            console.log(util_data[1])
+            console.log(this.payload.error_message);
             this.process.pushALert(
               JSON.stringify({
                 ...Alert[this.payload.error_message],
