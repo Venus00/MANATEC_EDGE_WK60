@@ -8,6 +8,13 @@ export class EventService {
   async events() {
     return await this.prisma.event.findMany();
   }
+  async deleteHealth(id: number) {
+    await this.prisma.health.delete({
+      where: {
+        id,
+      },
+    });
+  }
   async delete(id: number) {
     await this.prisma.event.delete({
       where: {
