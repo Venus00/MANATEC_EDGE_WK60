@@ -215,7 +215,7 @@ export class ProcessService implements OnModuleInit {
       this.mqtt.publishPayload(payload);
     } else if (this.saveFlag) {
       this.logger.log('save in database');
-      await this.event.createEvent(JSON.stringify(payload));
+      await this.event.createEvent(JSON.parse(payload));
       this.status.last_log_date = new Date();
       await this.statusService.updateLogDate(this.status.last_log_date);
     }

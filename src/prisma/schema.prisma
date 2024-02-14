@@ -9,29 +9,29 @@ generator client {
 
 model Event {
   id                Int      @id @default(autoincrement())
-  version_protocole String
-  total_weight      String
-  number_bucket     String
-  current_weighting String
-  voucher_number    String
-  error_message     String
-  error_value       String
-  value             String
-  date              String
-  clock_time        String
-  total_price       String
-  costumer_name     String
-  costumer_number   String
-  material_name     String
-  material_number   String
-  building_name     String
-  building_number   String
-  driver_name       String
-  driver_number     String
-  vehicule_number   String
-  vehicule_name     String
-  container_name    String
-  container_number  String
+  version_protocole String?
+  total_weight      String?
+  number_bucket     String?
+  current_weighting String?
+  voucher_number    String?
+  error_message     String?
+  error_value       String?
+  value             String?
+  date              String?
+  clock_time        String?
+  total_price       String?
+  costumer_name     String?
+  costumer_number   String?
+  material_name     String?
+  material_number   String?
+  building_name     String?
+  building_number   String?
+  driver_name       String?
+  driver_number     String?
+  vehicule_number   String?
+  vehicule_name     String?
+  container_name    String?
+  container_number  String?
   created_at        DateTime @default(now())
 }
 
