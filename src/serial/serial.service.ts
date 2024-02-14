@@ -156,9 +156,8 @@ export class SerialService implements OnModuleInit {
     const result = [];
     let current_byte = [];
     for (let i = 0; i < buffer.length; i++) {
-      console.log(buffer[i]);
-      console.log(seprator);
       if (buffer[i] === seprator) {
+        console.log(current_byte)
         if (current_byte.length > 0) {
           result.push(current_byte);
           current_byte = [];
@@ -179,6 +178,7 @@ export class SerialService implements OnModuleInit {
           buffer.subarray(2, buffer.length),
           0x01,
         );
+        console.log(util_data)
         this.logger.log('[d] util data', util_data);
         this.clear_payload();
         switch (protocole_number) {
