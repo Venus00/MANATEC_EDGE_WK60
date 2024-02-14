@@ -175,7 +175,7 @@ export class SerialService implements OnModuleInit {
       }
     }
   }
-  onReaderData(data: Buffer) {
+  async onReaderData(data: Buffer) {
     try {
       console.log(data);
       const buffer = this.returnFrame(data);
@@ -207,7 +207,7 @@ export class SerialService implements OnModuleInit {
             this.logger.log('[d] Protocole Erreur');
             console.log(util_data[1]);
             console.log(this.payload.error_message);
-            this.process.pushALert(
+            await this.process.pushALert(
               JSON.stringify({
                 ...Alert[this.payload.error_message],
                 created_at: new Date(),
@@ -251,7 +251,7 @@ export class SerialService implements OnModuleInit {
           default:
             break;
         }
-        this.process.pushEntity(JSON.stringify(this.payload));
+        await this.process.pushEntity(JSON.stringify(this.payload));
       }
     } catch (error) {
       this.logger.log(error);
