@@ -166,6 +166,7 @@ export class SerialService implements OnModuleInit {
         current_byte.push(buffer[i]);
       }
     }
+    result.push(current_byte);
     return result;
   }
   onReaderData(buffer: Buffer) {
