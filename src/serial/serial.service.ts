@@ -175,7 +175,7 @@ export class SerialService implements OnModuleInit {
         const protocole_number = buffer[1];
         console.log(buffer.subarray(3, buffer.length));
         const util_data = this.splitBufferwithSperator(
-          buffer.subarray(2, buffer.length),
+          buffer.subarray(3, buffer.length),
           0x01,
         );
         console.log(util_data);
