@@ -173,6 +173,9 @@ export class SerialService implements OnModuleInit {
       if (buffer != null && buffer[0] === 0x02) {
         this.process.lastResponseDate(new Date());
         const protocole_number = buffer[1];
+        this.payload.version_protocole = new TextDecoder('ascii').decode(
+          Buffer.from([buffer[1]]),
+        );
         console.log(buffer);
         const util_data = this.splitBufferwithSperator(
           buffer.subarray(3, buffer.length),
@@ -192,7 +195,7 @@ export class SerialService implements OnModuleInit {
             this.payload.error_message = errros[util_data[1]];
             this.payload.error_value = util_data[1];
             this.logger.log('[d] Protocole Erreur');
-            console.log(util_data[1])
+            console.log(util_data[1]);
             console.log(this.payload.error_message);
             this.process.pushALert(
               JSON.stringify({

@@ -1,10 +1,10 @@
 export const errros = {
-  '10': 'Zero setting range exceeded',
-  '11': 'Zero setting range not reached',
-  '12': 'Maximum load exceeded',
-  '13': 'Minimum load not reached',
-  '14': 'Measuring time too long',
-  '15': 'Measuring time too short',
-  '16': 'Weight not stable',
-  '17': 'Angle exceeded',
+  '10': 'ZERO_SETTINGS_EXCEEDED',
+  '11': 'ZERO_SETTINGS_NOT_REACHED',
+  '12': 'MAX_LOAD_EXCEEDED',
+  '13': 'MIN_LOAD_NOT_REACHED',
+  '14': 'MEASURE_TOO_LONG',
+  '15': 'MEASURE_TOO_SHORT',
+  '16': 'WEIGHT_NOT_STABLE',
+  '17': 'ANGLE_EXCEEDED',
 };

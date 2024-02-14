@@ -27,7 +27,7 @@ export const Alert = {
     code: 'M0131',
     description: 'Maximum load exceeded',
   },
-  MAX_LOAD_NOT_REACHED: {
+  MIN_LOAD_NOT_REACHED: {
     code: 'M0132',
     description: 'Minimum load not reached',
   },
