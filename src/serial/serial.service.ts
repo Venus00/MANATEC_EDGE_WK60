@@ -225,9 +225,11 @@ export class SerialService implements OnModuleInit {
               this.current_total +
               parseFloat(this.payload.current_weight_loading.toString());
             console.log(this.current_total);
-            console.log(this.payload.current_weight_loading.toString());
             console.log(
-              parseFloat(this.payload.current_weight_loading.toString()),
+              `t${this.payload.current_weight_loading.toString().trim()}t`,
+            );
+            console.log(
+              parseFloat(this.payload.current_weight_loading.toString().trim()),
             );
             this.payload.total = this.current_total.toString();
             this.payload.number_weightings = util_data[1];
