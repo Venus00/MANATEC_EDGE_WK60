@@ -50,7 +50,7 @@ export class ProcessService implements OnModuleInit {
     await this.statusService.createIfNotExist({
       total_alert: 0,
       total_event: 0,
-      delta: 60 * 4 * 1000,
+      delta: 60 * 4,
       shut: 0,
       engine_status: '',
     });
