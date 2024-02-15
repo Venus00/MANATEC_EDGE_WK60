@@ -37,7 +37,7 @@ export const Alert = {
   },
   MEASURE_TOO_SHORT: {
     code: 'M0134',
-    description: 'Measuring time too shor',
+    description: 'Measuring time too short',
   },
   WEIGHT_NOT_STABLE: {
     code: 'M0135',
