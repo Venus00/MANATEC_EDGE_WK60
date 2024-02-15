@@ -9,15 +9,20 @@ import * as moment from 'moment';
 import { exec } from 'child_process';
 interface PAYLOAD {
   version_protocole: string;
-  total_weight: string;
-  number_bucket: string;
-  current_weighting: string;
+  version: string;
+  sn: string;
+  unit: string;
+  total: string;
+  number_weightings: string;
+  current_weight_loading: string;
   voucher_number: string;
+  status: string;
+  weight_last_stroke: string;
   error_message: string;
   error_value: string;
   value: string;
-  date: string;
-  clock_time: string;
+  date_last_strok: string;
+  time_last_stroke: string;
   total_price: string;
   costumer_name: string;
   costumer_number: string;
@@ -43,15 +48,20 @@ export class SerialService implements OnModuleInit {
   private command_type: string;
   private payload: PAYLOAD = {
     version_protocole: '',
-    total_weight: '',
-    number_bucket: '',
-    current_weighting: '',
+    version: '',
+    sn: '',
+    unit: '',
+    total: '',
+    number_weightings: '',
+    current_weight_loading: '0',
     voucher_number: '',
+    status: '',
+    weight_last_stroke: '0',
     error_message: '',
     error_value: '',
     value: '',
-    date: '',
-    clock_time: '',
+    date_last_strok: '',
+    time_last_stroke: '',
     total_price: '',
     costumer_name: '',
     costumer_number: '',
@@ -182,7 +192,6 @@ export class SerialService implements OnModuleInit {
     try {
       console.log(data);
       const buffer = this.returnFrame(data);
-      console.log(buffer);
       if (buffer != null && buffer[0] === 0x02) {
         this.process.lastResponseDate(new Date());
         const protocole_number = buffer[1];
@@ -199,45 +208,66 @@ export class SerialService implements OnModuleInit {
         this.clear_payload();
         switch (protocole_number) {
           case 0x32:
-            this.payload.current_weighting = util_data[0];
-            this.current_total += parseInt(util_data[0]);
-            this.payload.total_weight = this.current_total.toString();
-            this.payload.number_bucket = util_data[1];
+            if (this.payload.current_weight_loading !== '0') {
+              this.payload.weight_last_stroke =
+                this.payload.current_weight_loading;
+            }
+            this.payload.current_weight_loading = util_data[0];
+
+            this.current_total += parseFloat(util_data[0]);
+            this.payload.total = this.current_total.toString();
+            this.payload.number_weightings = util_data[1];
             this.payload.voucher_number = util_data[2];
+            this.payload.status = 'FB';
             this.logger.log('[d] à la fin de chargement de chaque Godet');
+            await this.process.pushEntity(JSON.stringify(this.payload));
+
             break;
           case 0x34:
             this.payload.error_message = errros[util_data[1]];
             this.payload.error_value = util_data[1];
             this.logger.log('[d] Protocole Erreur');
-            console.log(util_data[1]);
-            console.log(this.payload.error_message);
+            this.payload.status = 'Err';
+
             await this.process.pushALert(
               JSON.stringify({
                 ...Alert[this.payload.error_message],
                 created_at: new Date(),
               }),
             );
+            await this.process.pushEntity(JSON.stringify(this.payload));
+            this.payload.error_message = '';
+            this.payload.error_value = '';
+
             break;
           case 0x33:
             this.current_total = 0;
-            this.payload.total_weight = util_data[0];
-            this.payload.number_bucket = util_data[1];
+            this.payload.total = util_data[0];
+            this.payload.number_weightings = util_data[1];
             this.payload.voucher_number = util_data[2];
-            this.payload.date = util_data[3];
-            this.payload.clock_time = util_data[4];
+            this.payload.date_last_strok = util_data[3];
+            this.payload.time_last_stroke = util_data[4];
             this.payload.total_price = util_data[5];
+            this.payload.status = 'EL';
+
             this.logger.log(
               '[d] à la fin de mission de chargement (Shift principalement',
             );
+            this.setRtcTime(
+              this.payload.date_last_strok,
+              this.payload.time_last_stroke,
+            );
+            await this.process.pushEntity(JSON.stringify(this.payload));
+            this.payload.total_price = '';
+            this.payload.total = '0';
             break;
           case 0x38:
             this.current_total = 0;
-            this.payload.total_weight = util_data[0];
-            this.payload.number_bucket = util_data[1];
+            this.payload.total = util_data[0];
+            this.payload.number_weightings = util_data[1];
             this.payload.voucher_number = util_data[2];
-            this.payload.date = util_data[3];
-            this.payload.clock_time = util_data[4];
+            this.payload.date_last_strok = util_data[3];
+            this.payload.time_last_stroke = util_data[4];
             this.payload.total_price = util_data[5];
             this.payload.costumer_name = util_data[6];
             this.payload.costumer_number = util_data[7];
@@ -251,15 +281,22 @@ export class SerialService implements OnModuleInit {
             this.payload.vehicule_number = util_data[15];
             this.payload.container_name = util_data[16];
             this.payload.container_number = util_data[17];
-            this.setRtcTime(this.payload.date, this.payload.clock_time);
+            this.payload.status = 'FL';
+
+            this.setRtcTime(
+              this.payload.date_last_strok,
+              this.payload.time_last_stroke,
+            );
             this.logger.log(
               '[d] à la fin de mission de chargement (Shift principalement',
             );
+            await this.process.pushEntity(JSON.stringify(this.payload));
+            this.clear_payload();
+
             break;
           default:
             break;
         }
-        await this.process.pushEntity(JSON.stringify(this.payload));
       }
     } catch (error) {
       this.logger.log(error);
@@ -273,17 +310,7 @@ export class SerialService implements OnModuleInit {
     );
   }
   clear_payload() {
-    this.payload.version_protocole = '';
-    this.payload.current_weighting = '';
-    this.payload.number_bucket = '';
-    this.payload.error_message = '';
-    this.payload.error_value = '';
-    this.payload.total_weight = '';
-    this.payload.number_bucket = '';
-    this.payload.voucher_number = '';
-    this.payload.date = '';
-    this.payload.clock_time = '';
-    this.payload.total_price = '';
+    this.payload.total = '0';
     this.payload.costumer_name = '';
     this.payload.costumer_number = '';
     this.payload.material_name = '';
