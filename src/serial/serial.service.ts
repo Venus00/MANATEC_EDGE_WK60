@@ -179,7 +179,6 @@ export class SerialService implements OnModuleInit {
     let current_byte = [];
     for (let i = 0; i < buffer.length; i++) {
       if (buffer[i] === seprator) {
-        console.log(current_byte);
         if (current_byte.length > 0) {
           result.push(decoder.decode(Buffer.from(current_byte)));
           current_byte = [];
@@ -200,7 +199,6 @@ export class SerialService implements OnModuleInit {
   }
   async onReaderData(data: Buffer) {
     try {
-      console.log(data);
       const buffer = this.returnFrame(data);
       if (buffer != null && buffer[0] === 0x02) {
         this.process.lastResponseDate(new Date());
@@ -208,7 +206,6 @@ export class SerialService implements OnModuleInit {
         this.payload.version_protocole = new TextDecoder('ascii').decode(
           Buffer.from([buffer[1]]),
         );
-        console.log(buffer);
         const util_data = this.splitBufferwithSperator(
           buffer.subarray(3, buffer.length),
           0x01,
@@ -315,6 +312,7 @@ export class SerialService implements OnModuleInit {
     }
   }
   setRtcTime(date: string, time: string) {
+    console.log(moment(`${date} ${time}`).format('YYYY-MM-DD hh:mm:ss'));
     exec(
       `sudo timedatectl set-time ${moment(`${date} ${time}`).format(
         'YYYY-MM-DD hh:mm:ss',
