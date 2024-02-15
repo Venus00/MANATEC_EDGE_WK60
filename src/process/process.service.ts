@@ -136,7 +136,7 @@ export class ProcessService implements OnModuleInit {
       }
       for (let i = 0; i < health.length; i++) {
         if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0']) {
-          this.mqtt.publishPayload(
+          this.mqtt.publishHealth(
             JSON.stringify({
               ...JSON.parse(health[i].health),
               created_at: health[i].created_at,
