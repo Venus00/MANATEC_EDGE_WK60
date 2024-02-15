@@ -215,7 +215,7 @@ export class ProcessService implements OnModuleInit {
       this.mqtt.publishHealth(JSON.stringify(obj));
     } else if (this.saveFlag) {
       this.logger.log('save in database');
-      await this.event.createHealth(payload);
+      await this.event.createHealth(JSON.stringify(payload));
     }
   }
   async pushEntity(payload: string) {
