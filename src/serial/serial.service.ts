@@ -314,9 +314,9 @@ export class SerialService implements OnModuleInit {
   setRtcTime(date: string, time: string) {
     console.log(moment(`${date} ${time}`).format('YYYY-MM-DD hh:mm:ss'));
     exec(
-      `sudo timedatectl set-time ${moment(`${date} ${time}`).format(
+      `sudo timedatectl set-time "${moment(`${date} ${time}`).format(
         'YYYY-MM-DD hh:mm:ss',
-      )}`,
+      )}"`,
     );
   }
   clear_payload() {
