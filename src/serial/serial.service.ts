@@ -48,7 +48,7 @@ export class SerialService implements OnModuleInit {
   private command_type: string;
   private payload: PAYLOAD = {
     version_protocole: '',
-    version: '',
+    version: '1.1.6 0.29715',
     sn: '',
     unit: 'T',
     total: '',
