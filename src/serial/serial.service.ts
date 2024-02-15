@@ -6,7 +6,7 @@ import { ProcessService } from 'src/process/process.service';
 import { errros } from './config';
 import { Alert } from 'src/alert/alert';
 import * as moment from 'moment';
-import { exec } from 'child_process';
+import { exec, execSync } from 'child_process';
 interface PAYLOAD {
   version_protocole: string;
   version: string;
@@ -50,7 +50,7 @@ export class SerialService implements OnModuleInit {
     version_protocole: '',
     version: '',
     sn: '',
-    unit: '',
+    unit: 'T',
     total: '',
     number_weightings: '',
     current_weight_loading: '0',
@@ -85,6 +85,16 @@ export class SerialService implements OnModuleInit {
     this.logger.log('[d] init connection with Device ...');
     this.init_device();
     this.logger.log('[d] init requesting from device ...');
+    try {
+      this.payload.sn = execSync(
+        `ifconfig wlan0 | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'`,
+      )
+        .toString()
+        .replaceAll(':', '')
+        .trim();
+    } catch (error) {
+      this.logger.error(error);
+    }
     //this.starthandleRequestJob(this.process.getStatus().delta_time);
   }
 
@@ -215,13 +225,13 @@ export class SerialService implements OnModuleInit {
             this.payload.current_weight_loading = util_data[0];
 
             this.current_total += parseFloat(util_data[0]);
+            console.log(this.current_total);
             this.payload.total = this.current_total.toString();
             this.payload.number_weightings = util_data[1];
             this.payload.voucher_number = util_data[2];
             this.payload.status = 'FB';
             this.logger.log('[d] à la fin de chargement de chaque Godet');
             await this.process.pushEntity(JSON.stringify(this.payload));
-
             break;
           case 0x34:
             this.payload.error_message = errros[util_data[1]];
