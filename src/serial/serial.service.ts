@@ -215,7 +215,6 @@ export class SerialService implements OnModuleInit {
         );
         console.log(util_data);
         this.logger.log('[d] util data', util_data);
-        this.clear_payload();
         switch (protocole_number) {
           case 0x32:
             if (this.payload.current_weight_loading !== '0') {
