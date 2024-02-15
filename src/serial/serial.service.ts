@@ -213,8 +213,6 @@ export class SerialService implements OnModuleInit {
           buffer.subarray(3, buffer.length),
           0x01,
         );
-        console.log(util_data);
-        this.logger.log('[d] util data', util_data);
         switch (protocole_number) {
           case 0x32:
             if (this.payload.current_weight_loading !== '0') {
@@ -223,7 +221,7 @@ export class SerialService implements OnModuleInit {
             }
             this.payload.current_weight_loading = util_data[0];
 
-            this.current_total = this.current_total + parseFloat(util_data[0]);
+            this.current_total = util_data[0];
             console.log(this.current_total);
             this.payload.total = this.current_total.toString();
             this.payload.number_weightings = util_data[1];
