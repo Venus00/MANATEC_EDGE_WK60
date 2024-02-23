@@ -57,7 +57,7 @@ export class Serial2Service implements OnModuleInit {
       });
       this.readerParser = this.reader.pipe(
         new InterByteTimeoutParser({
-          interval: 50,
+          interval: 30,
           maxBufferSize: 100,
         }),
       );
@@ -153,65 +153,96 @@ export class Serial2Service implements OnModuleInit {
       }
     }
   }
+  returnUtilData(buffer: Buffer) {
+    let i = 0;
+    let result = [];
+    while (i < buffer.length) {
+      if (buffer[i] === 0x01 && buffer[i + 1] === 0x6a) {
+        console.log('[d] vims message returned');
+        result.push(buffer.subarray(i, i + 16));
+        i = i + 16;
+      } else if (buffer[i] === 0xff && buffer[i + 1] === 0xfd) {
+        console.log('[d] error message returned');
+        result.push(buffer.subarray(i, i + 9));
+        i = i + 9;
+      } else if (buffer[i] === 0xff && buffer[i + 1] === 0xfe) {
+        console.log('[d] ack message returned');
+        result.push(buffer.subarray(i, i + 7));
+        i = i + 7;
+      } else if (buffer[i] === 0xff && buffer[i + 1] === 0xff) {
+        console.log('[d] data message returned');
+        const byte_length = buffer[5] | (buffer[4] << 8);
+        const crc_length = 2;
+        const end_length = 1;
+        result.push(
+          buffer.subarray(i, i + byte_length + crc_length + end_length),
+        );
+        i = i + byte_length + crc_length + end_length;
+      }
+    }
+    console.log(result);
+    return result;
+  }
   onReaderData(buffer: Buffer) {
     try {
       console.log(buffer);
-      if (buffer != null) {
-        this.logger.log('buffer is not null');
-        this.logger.log(buffer[1]);
-        if ((buffer[0] | (buffer[1] << 8)) === 0xfffe) {
-          this.logger.log('response data');
-          this.process.lastReplyRequestHealth(new Date());
-          const data = this.returnFrame(buffer);
-          const sequence_number = data[3] | (data[2] << 8);
-          console.log(sequence_number);
-          if (sequence_number === parseInt(this.current_sequence, 16)) {
-            this.logger.log('sequence checked');
-            const number_of_bytes = data[7] | (data[6] << 8);
-            this.setResponseValues(data, number_of_bytes);
-            if (sequence_number === parseInt('0003', 16)) {
-              this.process.pushHealth(this.health_data);
-              this.health_data = health;
-            }
-          }
-        } else if ((buffer[1] | (buffer[0] << 8)) === 0xfffd) {
-          console.log('[d] error received');
-          const error = buffer[5] | (buffer[4] << 8);
-          console.log(error);
-          switch (error) {
-            case 0x0001:
-              this.process.pushALert({
-                ...Alert.INVALID_RPC_ID,
-                created_at: new Date(),
-              });
-              break;
-            case 0x0002:
-              this.process.pushALert({
-                ...Alert.ERROR_ARGUMENT,
-                created_at: new Date(),
-              });
-              break;
-            case 0x0004:
-              this.process.pushALert({
-                ...Alert.ECM_NOT_READY,
-                created_at: new Date(),
-              });
-              break;
-            case 0x0005:
-              this.process.pushALert({
-                ...Alert.ECM_READY,
-                created_at: new Date(),
-              });
-              break;
-            default:
-              break;
-          }
-        } else if ((buffer[1] | (buffer[0] << 8)) === 0x016a) {
-          console.log('[d] vims still active');
-          //vims still active update last replay datep
-          this.process.lastReplyHealth(new Date());
-        }
-      }
+      console.log(this.returnUtilData(buffer));
+      // if (buffer != null) {
+      //   this.logger.log('buffer is not null');
+      //   this.logger.log(buffer[1]);
+      //   if ((buffer[0] | (buffer[1] << 8)) === 0xfffe) {
+      //     this.logger.log('response data');
+      //     this.process.lastReplyRequestHealth(new Date());
+      //     const data = this.returnFrame(buffer);
+      //     const sequence_number = data[3] | (data[2] << 8);
+      //     console.log(sequence_number);
+      //     if (sequence_number === parseInt(this.current_sequence, 16)) {
+      //       this.logger.log('sequence checked');
+      //       const number_of_bytes = data[7] | (data[6] << 8);
+      //       this.setResponseValues(data, number_of_bytes);
+      //       if (sequence_number === parseInt('0003', 16)) {
+      //         this.process.pushHealth(this.health_data);
+      //         this.health_data = health;
+      //       }
+      //     }
+      //   } else if ((buffer[1] | (buffer[0] << 8)) === 0xfffd) {
+      //     console.log('[d] error received');
+      //     const error = buffer[5] | (buffer[4] << 8);
+      //     console.log(error);
+      //     switch (error) {
+      //       case 0x0001:
+      //         this.process.pushALert({
+      //           ...Alert.INVALID_RPC_ID,
+      //           created_at: new Date(),
+      //         });
+      //         break;
+      //       case 0x0002:
+      //         this.process.pushALert({
+      //           ...Alert.ERROR_ARGUMENT,
+      //           created_at: new Date(),
+      //         });
+      //         break;
+      //       case 0x0004:
+      //         this.process.pushALert({
+      //           ...Alert.ECM_NOT_READY,
+      //           created_at: new Date(),
+      //         });
+      //         break;
+      //       case 0x0005:
+      //         this.process.pushALert({
+      //           ...Alert.ECM_READY,
+      //           created_at: new Date(),
+      //         });
+      //         break;
+      //       default:
+      //         break;
+      //     }
+      //   } else if ((buffer[1] | (buffer[0] << 8)) === 0x016a) {
+      //     console.log('[d] vims still active');
+      //     //vims still active update last replay datep
+      //     this.process.lastReplyHealth(new Date());
+      //   }
+      // }
     } catch (error) {
       this.logger.log(error);
     }
