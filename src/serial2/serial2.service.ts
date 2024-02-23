@@ -175,10 +175,14 @@ export class Serial2Service implements OnModuleInit {
         console.log(byte_length);
         const crc_length = 2;
         const end_length = 1;
+        const id_length = 2;
         result.push(
-          buffer.subarray(i, i + 4 + byte_length + crc_length + end_length),
+          buffer.subarray(
+            i,
+            i + id_length + 4 + byte_length + crc_length + end_length,
+          ),
         );
-        i = i + byte_length + 4 + crc_length + end_length;
+        i = i + byte_length + 4 + id_length + crc_length + end_length;
         console.log(buffer.length);
         console.log(buffer[i + 4 + byte_length + crc_length + end_length]);
       } else {
