@@ -58,7 +58,7 @@ export class Serial2Service implements OnModuleInit {
       this.readerParser = this.reader.pipe(
         new InterByteTimeoutParser({
           interval: 30,
-          maxBufferSize: 100,
+          //maxBufferSize: 100,
         }),
       );
       this.readerParser.on('data', this.onReaderData.bind(this));
