@@ -9,6 +9,7 @@ generator client {
 
 model Event {
   id                     Int      @id @default(autoincrement())
+  serial                 String?
   version_protocole      String?
   version                String?
   sn                     String?
@@ -52,8 +53,10 @@ model Status {
   name                    String    @unique
   delta                   Int
   shut                    Int
-  total_event             Int
-  total_alert             Int
+  last_log_count_alert    Int?
+  last_log_count_payload  Int?
+  last_log_count_health   Int?
+  startup_date            DateTime?
   last_log_date           DateTime?
   last_response_date_vims DateTime?
   engine_status           String

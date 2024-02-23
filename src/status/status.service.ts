@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 interface Status {
-  total_event: number;
-  total_alert: number;
+  last_log_count_alert: number;
+  last_log_count_health: number;
+  last_log_count_payload: number;
   shut: number;
   delta: number;
   last_log_date?: Date;
@@ -29,6 +30,16 @@ export class StatusService {
         name: 'status',
       },
       update: {},
+    });
+  }
+  async updateStartupDate(startup_date: Date) {
+    return await this.prisma.status.update({
+      where: {
+        id: 1,
+      },
+      data: {
+        startup_date,
+      },
     });
   }
   async updateShutDownCount(shut: number) {
@@ -61,14 +72,19 @@ export class StatusService {
       },
     });
   }
-  async updateEventAlert(total_alert: number, total_event: number) {
+  async updateEventAlert(
+    last_log_count_alert: number,
+    last_log_count_health: number,
+    last_log_count_payload: number,
+  ) {
     return await this.prisma.status.update({
       where: {
         id: 1,
       },
       data: {
-        total_alert,
-        total_event,
+        last_log_count_alert,
+        last_log_count_health,
+        last_log_count_payload,
       },
     });
   }

@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { SerialPort } from 'serialport';
-import { DelimiterParser } from '@serialport/parser-delimiter';
+// import { DelimiterParser } from '@serialport/parser-delimiter';
+import { InterByteTimeoutParser } from '@serialport/parser-inter-byte-timeout';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { ProcessService } from 'src/process/process.service';
 import { errros } from './config';
@@ -105,10 +106,13 @@ export class SerialService implements OnModuleInit {
         baudRate: 9600,
       });
       this.readerParser = this.reader.pipe(
-        new DelimiterParser({
-          delimiter: [0x03],
-          includeDelimiter: false,
+        new InterByteTimeoutParser({
+          interval: 30,
         }),
+        // new DelimiterParser({
+        //   delimiter: [0x03],
+        //   includeDelimiter: false,
+        // }),
       );
       this.readerParser.on('data', this.onReaderData.bind(this));
       this.reader.on('close', this.onReaderClose.bind(this));
@@ -230,7 +234,12 @@ export class SerialService implements OnModuleInit {
             this.payload.voucher_number = util_data[2];
             this.payload.status = 'FB';
             this.logger.log('[d] à la fin de chargement de chaque Godet');
-            await this.process.pushEntity(JSON.stringify(this.payload));
+            await this.process.pushEntity(
+              JSON.stringify({
+                ...this.payload,
+                created_at: new Date(),
+              }),
+            );
             break;
           case 0x34:
             this.payload.error_message = errros[util_data[1]];
@@ -244,7 +253,12 @@ export class SerialService implements OnModuleInit {
                 created_at: new Date(),
               }),
             );
-            await this.process.pushEntity(JSON.stringify(this.payload));
+            await this.process.pushEntity(
+              JSON.stringify({
+                ...this.payload,
+                created_at: new Date(),
+              }),
+            );
             this.payload.error_message = '';
             this.payload.error_value = '';
 
@@ -266,7 +280,12 @@ export class SerialService implements OnModuleInit {
               this.payload.date_last_strok,
               this.payload.time_last_stroke,
             );
-            await this.process.pushEntity(JSON.stringify(this.payload));
+            await this.process.pushEntity(
+              JSON.stringify({
+                ...this.payload,
+                created_at: new Date(),
+              }),
+            );
             this.payload.total_price = '';
             this.payload.total = '0';
             break;
@@ -299,7 +318,12 @@ export class SerialService implements OnModuleInit {
             this.logger.log(
               '[d] à la fin de mission de chargement (Shift principalement',
             );
-            await this.process.pushEntity(JSON.stringify(this.payload));
+            await this.process.pushEntity(
+              JSON.stringify({
+                ...this.payload,
+                created_at: new Date(),
+              }),
+            );
             this.clear_payload();
 
             break;

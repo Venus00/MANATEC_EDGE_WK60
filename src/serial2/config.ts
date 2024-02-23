@@ -326,7 +326,6 @@ export const health_machine = {
     value: '',
   },
 };
-
 export const health = {
   EN001: {
     name: 'Air Filter Restriction',

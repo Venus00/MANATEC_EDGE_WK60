@@ -27,6 +27,7 @@ export class Serial2Service implements OnModuleInit {
   private readonly logger = new Logger(Serial2Service.name);
   private job;
   private health_data = health;
+  private last_reply_vims: Date = new Date();
   constructor(
     private schedulerRegistry: SchedulerRegistry,
     private process: ProcessService,
@@ -145,20 +146,29 @@ export class Serial2Service implements OnModuleInit {
     }
     return result;
   }
+  returnFrame(buffer: Buffer) {
+    for (let i = 0; i < buffer.length - 1; i++) {
+      if (buffer[i] === 0xff && buffer[i + 1] === 0xff) {
+        return buffer.subarray(i, buffer.length);
+      }
+    }
+  }
   onReaderData(buffer: Buffer) {
     try {
       console.log(buffer);
       if (buffer != null) {
         this.logger.log('buffer is not null');
         this.logger.log(buffer[1]);
-        if ((buffer[0] | (buffer[1] << 8)) === 0xffff) {
+        if ((buffer[0] | (buffer[1] << 8)) === 0xfffe) {
           this.logger.log('response data');
-          const sequence_number = buffer[3] | (buffer[2] << 8);
+          this.process.lastReplyRequestHealth(new Date());
+          const data = this.returnFrame(buffer);
+          const sequence_number = data[3] | (data[2] << 8);
           console.log(sequence_number);
           if (sequence_number === parseInt(this.current_sequence, 16)) {
             this.logger.log('sequence checked');
-            const number_of_bytes = buffer[7] | (buffer[6] << 8);
-            this.setResponseValues(buffer, number_of_bytes);
+            const number_of_bytes = data[7] | (data[6] << 8);
+            this.setResponseValues(data, number_of_bytes);
             if (sequence_number === parseInt('0003', 16)) {
               this.process.pushHealth(this.health_data);
               this.health_data = health;
@@ -170,36 +180,28 @@ export class Serial2Service implements OnModuleInit {
           console.log(error);
           switch (error) {
             case 0x0001:
-              this.process.pushALert(
-                JSON.stringify({
-                  ...Alert.INVALID_RPC_ID,
-                  created_at: new Date(),
-                }),
-              );
+              this.process.pushALert({
+                ...Alert.INVALID_RPC_ID,
+                created_at: new Date(),
+              });
               break;
             case 0x0002:
-              this.process.pushALert(
-                JSON.stringify({
-                  ...Alert.ERROR_ARGUMENT,
-                  created_at: new Date(),
-                }),
-              );
+              this.process.pushALert({
+                ...Alert.ERROR_ARGUMENT,
+                created_at: new Date(),
+              });
               break;
             case 0x0004:
-              this.process.pushALert(
-                JSON.stringify({
-                  ...Alert.ECM_NOT_READY,
-                  created_at: new Date(),
-                }),
-              );
+              this.process.pushALert({
+                ...Alert.ECM_NOT_READY,
+                created_at: new Date(),
+              });
               break;
             case 0x0005:
-              this.process.pushALert(
-                JSON.stringify({
-                  ...Alert.ECM_READY,
-                  created_at: new Date(),
-                }),
-              );
+              this.process.pushALert({
+                ...Alert.ECM_READY,
+                created_at: new Date(),
+              });
               break;
             default:
               break;

@@ -14,6 +14,7 @@ export class EventService {
         id,
       },
     });
+    await this.prisma.$queryRaw`ALTER TABLE Health AUTO_INCREMENT = 1`;
   }
   async delete(id: number) {
     await this.prisma.event.delete({
@@ -21,6 +22,7 @@ export class EventService {
         id,
       },
     });
+    await this.prisma.$queryRaw`ALTER TABLE Event AUTO_INCREMENT = 1`;
   }
   async findManyHealthEvents() {
     return await this.prisma.health.findMany();

@@ -13,10 +13,11 @@ export class AlertService {
     return await this.prismaService.alert.findMany({});
   }
   async delete(id: number) {
-    return await this.prismaService.alert.delete({
+    await this.prismaService.alert.delete({
       where: {
         id,
       },
     });
+    await this.prismaService.$queryRaw`ALTER TABLE Alert AUTO_INCREMENT = 1`;
   }
 }

@@ -11,14 +11,16 @@ import * as os from 'os';
 export interface STATUS {
   delta_time: number;
   storage: string;
-  total_event: number;
-  total_alert: number;
+  last_log_count_alert: number;
+  last_log_count_payload: number;
+  last_log_count_health: number;
   ip: string;
   mac: string;
   shutdown_counter: number;
   last_log_date: Date | undefined;
   last_response_date_vims: Date | undefined;
   engine_status: string;
+  startup_date: Date;
 }
 @Injectable()
 export class ProcessService implements OnModuleInit {
@@ -26,17 +28,20 @@ export class ProcessService implements OnModuleInit {
   private saveFlag = true;
   private last_sent = new Date();
   private health_engine: any;
+  private last_reply_request_vims = new Date();
   private status: STATUS = {
     storage: '',
-    total_alert: 0,
-    total_event: 0,
-    delta_time: 0,
+    last_log_count_alert: 0,
+    last_log_count_payload: 0,
+    last_log_count_health: 0,
+    delta_time: 60 * 2,
     last_log_date: undefined,
     ip: '',
     mac: '',
     shutdown_counter: 0,
-    last_response_date_vims: undefined,
-    engine_status: '',
+    last_response_date_vims: new Date(),
+    engine_status: 'CK',
+    startup_date: new Date(),
   };
 
   constructor(
@@ -48,24 +53,29 @@ export class ProcessService implements OnModuleInit {
 
   async onModuleInit() {
     await this.statusService.createIfNotExist({
-      total_alert: 0,
-      total_event: 0,
-      delta: 60 * 4,
+      last_log_count_alert: 0,
+      last_log_count_health: 0,
+      last_log_count_payload: 0,
+      delta: 60 * 2,
       shut: 0,
-      engine_status: '',
+      engine_status: 'CK',
     });
     const statusFromDb = await this.statusService.get();
     this.logger.log('status from db  : ', statusFromDb);
     this.status.delta_time = statusFromDb.delta;
     this.status.shutdown_counter = statusFromDb.shut;
     this.status.last_log_date = statusFromDb.last_log_date;
-    this.status.total_alert = statusFromDb.total_alert;
-    this.status.total_event = statusFromDb.total_event;
+    this.status.last_log_count_alert = statusFromDb.last_log_count_alert;
+    this.status.last_log_count_health = statusFromDb.last_log_count_health;
+    this.status.last_log_count_payload = statusFromDb.last_log_count_payload;
     this.status.last_response_date_vims = statusFromDb.last_response_date_vims;
     this.status.engine_status = statusFromDb.engine_status;
+
     await this.statusService.updateShutDownCount(
       this.status.shutdown_counter + 1,
     );
+
+    await this.statusService.updateStartupDate(this.status.startup_date);
     try {
       this.status.storage = execSync(`df -h /data | awk 'NR==2 {print $4}'`)
         .toString()
@@ -117,7 +127,7 @@ export class ProcessService implements OnModuleInit {
       const events = await this.event.events();
       this.logger.log('events log', events.length);
       if (events.length !== 0) {
-        this.status.total_event = events.length;
+        this.status.last_log_count_payload = events.length;
       }
       for (let i = 0; i < events.length; i++) {
         if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0']) {
@@ -132,7 +142,7 @@ export class ProcessService implements OnModuleInit {
       const health = await this.event.findManyHealthEvents();
       this.logger.log('health log', health.length);
       if (health.length !== 0) {
-        this.status.total_event += health.length;
+        this.status.last_log_count_health += health.length;
       }
       for (let i = 0; i < health.length; i++) {
         if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0']) {
@@ -153,7 +163,7 @@ export class ProcessService implements OnModuleInit {
 
       this.logger.log('alert from db', alerts.length);
       if (alerts.length !== 0) {
-        this.status.total_alert = alerts.length;
+        this.status.last_log_count_alert = alerts.length;
       }
       for (let i = 0; i < alerts.length; i++) {
         if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0']) {
@@ -171,10 +181,15 @@ export class ProcessService implements OnModuleInit {
   }
   async pushStatus() {
     if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0']) {
-      if (this.status.total_alert !== 0 || this.status.total_event !== 0) {
+      if (
+        this.status.last_log_count_alert !== 0 ||
+        this.status.last_log_count_health !== 0 ||
+        this.status.last_log_count_payload !== 0
+      ) {
         await this.statusService.updateEventAlert(
-          this.status.total_alert,
-          this.status.total_event,
+          this.status.last_log_count_alert,
+          this.status.last_log_count_health,
+          this.status.last_log_count_payload,
         );
       }
       this.status.ip = os.networkInterfaces()['wlan0'][0].address;
@@ -190,22 +205,33 @@ export class ProcessService implements OnModuleInit {
   engineHealth(obj: any) {
     this.health_engine = obj;
   }
+  lastReplyRequestHealth(date: Date) {
+    this.last_reply_request_vims = date;
+  }
   lastReplyHealth(date: Date) {
     this.status.last_response_date_vims = date;
   }
   lastResponseDate(date: Date) {
     this.last_sent = date;
   }
-  async pushALert(payload) {
+  async pushALert(data) {
+    const payload = {
+      ...data,
+      serial: this.status.mac,
+    };
     if (this.mqtt.getConnectionState()) {
       this.logger.log('connection is good published');
-      this.mqtt.publishAlert(payload);
+      this.mqtt.publishAlert(JSON.stringify(payload));
     } else if (this.saveFlag) {
       this.logger.log('save in database');
-      await this.alert.create(JSON.parse(payload));
+      await this.alert.create(payload);
     }
   }
-  async pushHealth(payload: any) {
+  async pushHealth(data: any) {
+    const payload = {
+      ...data,
+      serial: this.status.mac,
+    };
     if (this.mqtt.getConnectionState()) {
       this.logger.log('connection is good published');
       const obj = {
@@ -235,31 +261,38 @@ export class ProcessService implements OnModuleInit {
   }
   async checkALert() {
     try {
-      if (
-        new Date().getTime() - this.last_sent.getTime() > 40 * 60 * 1000 &&
-        parseInt(this.health_engine?.TR005.value) > 700
-      ) {
-        this.logger.log('this PAYLOAD is connected but not sending data');
-        if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0']) {
-          this.mqtt.publishAlert(
-            JSON.stringify({
-              ...Alert.DEVICE,
-              created_at: new Date(),
-            }),
-          );
-        } else if (this.saveFlag) {
-          this.logger.log('insert alert no device communication');
+      if (parseInt(this.health_engine?.TR005.value) > 700) {
+        if (new Date().getTime() - this.last_sent.getTime() > 15 * 60 * 1000) {
+          this.logger.log('this PAYLOAD is connected but not sending data');
+          this.status.engine_status = 'MR';
+          if (
+            this.mqtt.getConnectionState() &&
+            os.networkInterfaces()['wlan0']
+          ) {
+            this.mqtt.publishAlert(
+              JSON.stringify({
+                ...Alert.DEVICE,
+                created_at: new Date(),
+              }),
+            );
+          } else if (this.saveFlag) {
+            this.logger.log('insert alert no device communication');
 
-          await this.alert.create({
-            ...Alert.DEVICE,
-          });
+            await this.alert.create({
+              ...Alert.DEVICE,
+            });
+          }
+        } else {
+          this.status.engine_status = 'ML';
         }
+      } else {
+        this.status.engine_status = 'CK';
       }
       if (
-        new Date().getTime() - this.status.last_response_date_vims.getTime() >
-        4 * 60 * 1000
+        new Date().getTime() - this.last_reply_request_vims.getTime() >
+        3 * 60 * 1000
       ) {
-        this.logger.log('this ECM is connected but not sending data');
+        this.logger.log('this ECM no responding');
         if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0']) {
           this.mqtt.publishAlert(
             JSON.stringify({
@@ -267,17 +300,28 @@ export class ProcessService implements OnModuleInit {
               created_at: new Date(),
             }),
           );
-          this.mqtt.publishAlert(
-            JSON.stringify({
-              ...Alert.ECM_MESSAGE_ERROR,
-              created_at: new Date(),
-            }),
-          );
         } else if (this.saveFlag) {
-          this.logger.log('insert alert no device communication');
+          this.logger.log('insert alert');
+          await this.alert.create({
+            ...Alert.ECM_NOT_RESPONDING,
+          });
+        }
+      }
+      if (
+        new Date().getTime() - this.status.last_response_date_vims.getTime() >
+        30 * 1000
+      ) {
+        this.logger.log('this ECM is connected but not replying 016a');
+        if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0']) {
+          this.pushALert({
+            ...Alert.ECM_MESSAGE_ERROR,
+            created_at: new Date(),
+          });
+        } else if (this.saveFlag) {
+          this.logger.log('insert alert');
 
           await this.alert.create({
-            ...Alert.DEVICE,
+            ...Alert.ECM_MESSAGE_ERROR,
           });
         }
       }
