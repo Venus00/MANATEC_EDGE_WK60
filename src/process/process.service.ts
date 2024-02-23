@@ -68,7 +68,8 @@ export class ProcessService implements OnModuleInit {
     this.status.last_log_count_alert = statusFromDb.last_log_count_alert;
     this.status.last_log_count_health = statusFromDb.last_log_count_health;
     this.status.last_log_count_payload = statusFromDb.last_log_count_payload;
-    this.status.last_response_date_vims = statusFromDb.last_response_date_vims;
+    this.status.last_response_date_vims =
+      statusFromDb.last_response_date_vims || new Date();
     this.status.engine_status = statusFromDb.engine_status;
 
     await this.statusService.updateShutDownCount(
