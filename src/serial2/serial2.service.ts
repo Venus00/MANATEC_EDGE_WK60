@@ -176,9 +176,9 @@ export class Serial2Service implements OnModuleInit {
         const crc_length = 2;
         const end_length = 1;
         result.push(
-          buffer.subarray(i, i + 5 + byte_length + crc_length + end_length),
+          buffer.subarray(i, i + 4 + byte_length + crc_length + end_length),
         );
-        i = i + byte_length + 5 + crc_length + end_length;
+        i = i + byte_length + 4 + crc_length + end_length;
       } else {
         break;
       }
@@ -189,7 +189,7 @@ export class Serial2Service implements OnModuleInit {
   onReaderData(buffer: Buffer) {
     try {
       console.log(buffer);
-      console.log(this.returnUtilData(buffer));
+      this.returnUtilData(buffer);
       // if (buffer != null) {
       //   this.logger.log('buffer is not null');
       //   this.logger.log(buffer[1]);
