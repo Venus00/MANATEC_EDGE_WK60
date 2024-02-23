@@ -195,63 +195,10 @@ export class Serial2Service implements OnModuleInit {
   onReaderData(buffer: Buffer) {
     try {
       console.log(buffer);
-      this.returnUtilData(buffer);
-      // if (buffer != null) {
-      //   this.logger.log('buffer is not null');
-      //   this.logger.log(buffer[1]);
-      //   if ((buffer[0] | (buffer[1] << 8)) === 0xfffe) {
-      //     this.logger.log('response data');
-      //     this.process.lastReplyRequestHealth(new Date());
-      //     const data = this.returnFrame(buffer);
-      //     const sequence_number = data[3] | (data[2] << 8);
-      //     console.log(sequence_number);
-      //     if (sequence_number === parseInt(this.current_sequence, 16)) {
-      //       this.logger.log('sequence checked');
-      //       const number_of_bytes = data[7] | (data[6] << 8);
-      //       this.setResponseValues(data, number_of_bytes);
-      //       if (sequence_number === parseInt('0003', 16)) {
-      //         this.process.pushHealth(this.health_data);
-      //         this.health_data = health;
-      //       }
-      //     }
-      //   } else if ((buffer[1] | (buffer[0] << 8)) === 0xfffd) {
-      //     console.log('[d] error received');
-      //     const error = buffer[5] | (buffer[4] << 8);
-      //     console.log(error);
-      //     switch (error) {
-      //       case 0x0001:
-      //         this.process.pushALert({
-      //           ...Alert.INVALID_RPC_ID,
-      //           created_at: new Date(),
-      //         });
-      //         break;
-      //       case 0x0002:
-      //         this.process.pushALert({
-      //           ...Alert.ERROR_ARGUMENT,
-      //           created_at: new Date(),
-      //         });
-      //         break;
-      //       case 0x0004:
-      //         this.process.pushALert({
-      //           ...Alert.ECM_NOT_READY,
-      //           created_at: new Date(),
-      //         });
-      //         break;
-      //       case 0x0005:
-      //         this.process.pushALert({
-      //           ...Alert.ECM_READY,
-      //           created_at: new Date(),
-      //         });
-      //         break;
-      //       default:
-      //         break;
-      //     }
-      //   } else if ((buffer[1] | (buffer[0] << 8)) === 0x016a) {
-      //     console.log('[d] vims still active');
-      //     //vims still active update last replay datep
-      //     this.process.lastReplyHealth(new Date());
-      //   }
-      // }
+      const data = this.returnUtilData(buffer);
+      for (let i = 0; i < data.length; i++) {
+        this.processUtilData(data[i]);
+      }
     } catch (error) {
       this.logger.log(error);
     }
@@ -341,5 +288,61 @@ export class Serial2Service implements OnModuleInit {
 
     const crcbuf = Buffer.from([crc & 0xff, (crc >> 8) & 0xff]); // Corrected byte order
     return crcbuf;
+  }
+  processUtilData(buffer: Buffer) {
+    if (buffer != null) {
+      if ((buffer[0] | (buffer[1] << 8)) === 0xfffe) {
+        this.logger.log('response data');
+        this.process.lastReplyRequestHealth(new Date());
+        const data = this.returnFrame(buffer);
+        const sequence_number = data[3] | (data[2] << 8);
+        console.log(sequence_number);
+        if (sequence_number === parseInt(this.current_sequence, 16)) {
+          this.logger.log('sequence checked');
+          const number_of_bytes = data[7] | (data[6] << 8);
+          this.setResponseValues(data, number_of_bytes);
+          if (sequence_number === parseInt('0003', 16)) {
+            this.process.pushHealth(this.health_data);
+            this.health_data = health;
+          }
+        }
+      } else if ((buffer[1] | (buffer[0] << 8)) === 0xfffd) {
+        console.log('[d] error received');
+        const error = buffer[5] | (buffer[4] << 8);
+        console.log(error);
+        switch (error) {
+          case 0x0001:
+            this.process.pushALert({
+              ...Alert.INVALID_RPC_ID,
+              created_at: new Date(),
+            });
+            break;
+          case 0x0002:
+            this.process.pushALert({
+              ...Alert.ERROR_ARGUMENT,
+              created_at: new Date(),
+            });
+            break;
+          case 0x0004:
+            this.process.pushALert({
+              ...Alert.ECM_NOT_READY,
+              created_at: new Date(),
+            });
+            break;
+          case 0x0005:
+            this.process.pushALert({
+              ...Alert.ECM_READY,
+              created_at: new Date(),
+            });
+            break;
+          default:
+            break;
+        }
+      } else if ((buffer[1] | (buffer[0] << 8)) === 0x016a) {
+        console.log('[d] vims still active');
+        //vims still active update last replay datep
+        this.process.lastReplyHealth(new Date());
+      }
+    }
   }
 }
