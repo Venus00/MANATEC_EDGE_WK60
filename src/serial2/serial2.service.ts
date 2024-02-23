@@ -185,6 +185,8 @@ export class Serial2Service implements OnModuleInit {
         i = i + byte_length + 4 + id_length + crc_length + end_length;
         console.log(buffer.length);
         console.log(buffer[i + 4 + byte_length + crc_length + end_length]);
+      } else {
+        break;
       }
     }
     console.log(result);
