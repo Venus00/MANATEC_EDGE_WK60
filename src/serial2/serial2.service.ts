@@ -56,7 +56,7 @@ export class Serial2Service implements OnModuleInit {
         baudRate: 9600,
       });
       this.readerParser = this.reader.pipe(
-        new InterByteTimeoutParser({ interval: 30 }),
+        new InterByteTimeoutParser({ interval: 50 }),
       );
       this.readerParser.on('data', this.onReaderData.bind(this));
       this.reader.on('close', this.onReaderClose.bind(this));
