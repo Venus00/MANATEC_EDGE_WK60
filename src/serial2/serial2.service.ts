@@ -179,6 +179,7 @@ export class Serial2Service implements OnModuleInit {
           buffer.subarray(i, i + 4 + byte_length + crc_length + end_length),
         );
         i = i + byte_length + 4 + crc_length + end_length;
+        console.log(buffer[i + 4 + byte_length + crc_length + end_length]);
       } else {
         break;
       }
