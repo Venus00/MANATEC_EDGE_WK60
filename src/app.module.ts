@@ -8,7 +8,6 @@ import { AlertModule } from './alert/alert.module';
 import { StatusModule } from './status/status.module';
 import { ProcessModule } from './process/process.module';
 import { Serial2Module } from './serial2/serial2.module';
-import { SeedService } from './seed.service';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -22,6 +21,6 @@ import { SeedService } from './seed.service';
     Serial2Module,
   ],
   controllers: [],
-  providers: [SeedService],
+  providers: [],
 })
 export class AppModule {}
