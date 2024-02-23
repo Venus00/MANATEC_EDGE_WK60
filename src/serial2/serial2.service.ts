@@ -171,7 +171,7 @@ export class Serial2Service implements OnModuleInit {
         i = i + 7;
       } else if (buffer[i] === 0xff && buffer[i + 1] === 0xff) {
         console.log('[d] data message returned');
-        const byte_length = buffer[5] | (buffer[4] << 8);
+        const byte_length = buffer[4] | (buffer[5] << 8);
         console.log(byte_length);
         const crc_length = 2;
         const end_length = 1;
