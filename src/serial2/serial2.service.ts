@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { SerialPort } from 'serialport';
-import { DelimiterParser } from '@serialport/parser-delimiter';
+import { InterByteTimeoutParser } from '@serialport/parser-inter-byte-timeout';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { ProcessService } from 'src/process/process.service';
 import { Alert } from 'src/alert/alert';
@@ -56,10 +56,7 @@ export class Serial2Service implements OnModuleInit {
         baudRate: 9600,
       });
       this.readerParser = this.reader.pipe(
-        new DelimiterParser({
-          delimiter: [0xc0],
-          includeDelimiter: false,
-        }),
+        new InterByteTimeoutParser({ interval: 30 }),
       );
       this.readerParser.on('data', this.onReaderData.bind(this));
       this.reader.on('close', this.onReaderClose.bind(this));
