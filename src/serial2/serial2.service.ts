@@ -114,7 +114,7 @@ export class Serial2Service implements OnModuleInit {
     //this.logger.log(this.current_request_elements);
     const request = this.buildRequest(this.current_request_elements);
     // fs.appendFileSync('test.log', request.toString('hex') + '\n');
-    console.log(request);
+    //console.log(request);
     this.write(request);
     //let index = 0;
     // for (const request_elements in request_group) {
@@ -185,7 +185,6 @@ export class Serial2Service implements OnModuleInit {
       } else if (buffer[i] === 0xff && buffer[i + 1] === 0xff) {
         console.log('[d] data message returned');
         const byte_length = buffer[i + 5] | (buffer[i + 4] << 8);
-        console.log(byte_length);
         const crc_length = 2;
         const end_length = 1;
         const id_length = 2;
@@ -196,8 +195,6 @@ export class Serial2Service implements OnModuleInit {
           ),
         );
         i = i + byte_length + 4 + id_length + crc_length + end_length;
-        console.log(buffer.length);
-        console.log(buffer[i + 4 + byte_length + crc_length + end_length]);
       } else {
         break;
       }
