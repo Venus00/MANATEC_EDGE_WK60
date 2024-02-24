@@ -58,7 +58,7 @@ export class MqttService implements OnModuleInit {
       clientId: this.mac,
       // username: this.mac,
       // password: this.mac,
-      keepalive: 1,
+      keepalive: 60,
       reconnectPeriod: 1,
     });
     this.client.on('connect', this.onConnect.bind(this));
