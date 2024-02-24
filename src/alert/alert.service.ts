@@ -22,6 +22,5 @@ export class AlertService {
         id,
       },
     });
-    await this.prismaService.$queryRaw`ALTER TABLE Alert AUTO_INCREMENT = 1`;
   }
 }
