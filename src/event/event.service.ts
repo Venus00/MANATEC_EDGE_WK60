@@ -8,7 +8,8 @@ export class EventService {
   async events() {
     const results = await this.prisma.event.findMany();
     if (results.length === 0) {
-      await this.prisma.$queryRaw`ALTER TABLE Event AUTO_INCREMENT = 1`;
+      await this.prisma
+        .$queryRaw`delete from sqlite_sequence where name='Event'`;
     }
     return results;
   }
@@ -29,7 +30,8 @@ export class EventService {
   async findManyHealthEvents() {
     const results = await this.prisma.health.findMany();
     if (results.length === 0) {
-      await this.prisma.$queryRaw`ALTER TABLE Health AUTO_INCREMENT = 1`;
+      await this.prisma
+        .$queryRaw`delete from sqlite_sequence where name='Health'`;
     }
     return results;
   }

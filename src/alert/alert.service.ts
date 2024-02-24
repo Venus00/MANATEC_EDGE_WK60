@@ -12,7 +12,8 @@ export class AlertService {
   async getAll() {
     const results = await this.prismaService.alert.findMany({});
     if (results.length === 0) {
-      await this.prismaService.$queryRaw`ALTER TABLE Alert AUTO_INCREMENT = 1`;
+      await this.prismaService
+        .$queryRaw`delete from sqlite_sequence where name='Alert'`;
     }
     return results;
   }
