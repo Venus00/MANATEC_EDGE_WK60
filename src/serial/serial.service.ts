@@ -212,6 +212,9 @@ export class SerialService implements OnModuleInit {
         );
         switch (protocole_number) {
           case 0x32:
+            const now = new Date();
+            this.payload.date_last_strok = moment(now).format('YYYY-MM-DD');
+            this.payload.time_last_stroke = moment(now).format('hh:mm:ss');
             if (this.payload.current_weight_loading !== '0') {
               this.payload.weight_last_stroke =
                 this.payload.current_weight_loading;
@@ -233,7 +236,7 @@ export class SerialService implements OnModuleInit {
             await this.process.pushEntity(
               JSON.stringify({
                 ...this.payload,
-                created_at: new Date(),
+                created_at: now,
               }),
             );
             break;
