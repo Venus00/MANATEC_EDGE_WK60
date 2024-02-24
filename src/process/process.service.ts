@@ -322,7 +322,7 @@ export class ProcessService implements OnModuleInit {
       // }
       if (
         new Date().getTime() - this.last_response_date_vims.getTime() >
-        30 * 1000
+        35 * 1000
       ) {
         this.logger.log('this ECM is connected but not replying 016a');
         if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0']) {
