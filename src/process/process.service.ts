@@ -295,26 +295,26 @@ export class ProcessService implements OnModuleInit {
       } else {
         this.status.engine_status = 'CK';
       }
-      if (
-        this.last_reply_vims.getTime() - this.last_request_vims.getTime() >
-        4 * 1000
-      ) {
-        this.logger.log('this ECM no responding');
-        if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0']) {
-          this.mqtt.publishAlert(
-            JSON.stringify({
-              ...Alert.ECM_NOT_RESPONDING,
-              created_at: new Date(),
-            }),
-          );
-        } else if (this.saveFlag) {
-          this.logger.log('insert alert');
-          await this.alert.create({
-            ...Alert.ECM_NOT_RESPONDING,
-            serial: this.status.mac,
-          });
-        }
-      }
+      // if (
+      //   this.last_reply_vims.getTime() - this.last_request_vims.getTime() >
+      //   4 * 1000
+      // ) {
+      //   this.logger.log('this ECM no responding');
+      //   if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0']) {
+      //     this.mqtt.publishAlert(
+      //       JSON.stringify({
+      //         ...Alert.ECM_NOT_RESPONDING,
+      //         created_at: new Date(),
+      //       }),
+      //     );
+      //   } else if (this.saveFlag) {
+      //     this.logger.log('insert alert');
+      //     await this.alert.create({
+      //       ...Alert.ECM_NOT_RESPONDING,
+      //       serial: this.status.mac,
+      //     });
+      //   }
+      // }
       if (
         new Date().getTime() - this.status.last_response_date_vims.getTime() >
         30 * 1000
