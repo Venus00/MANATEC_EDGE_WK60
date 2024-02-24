@@ -18,6 +18,7 @@ import {
 import { CronJob, CronTime } from 'cron';
 @Injectable()
 export class Serial2Service implements OnModuleInit {
+  private isReply = false;
   private reader;
   private readerParser;
   private current_sequence: string;
@@ -84,14 +85,41 @@ export class Serial2Service implements OnModuleInit {
     this.current_data_number = data_number_engine;
     this.request(health_engine, 1);
     this.process.lastRequestHealth(new Date());
+    setTimeout(() => {
+      if (!this.isReply) {
+        this.process.pushALert({
+          ...Alert.ECM_NOT_RESPONDING,
+          created_at: new Date(),
+        });
+      }
+      this.isReply = false;
+    }, 4000);
     await this.sleep(5000);
     this.current_data_number = data_number_machine;
     this.request(health_machine, 2);
     this.process.lastRequestHealth(new Date());
+    setTimeout(() => {
+      if (!this.isReply) {
+        this.process.pushALert({
+          ...Alert.ECM_NOT_RESPONDING,
+          created_at: new Date(),
+        });
+      }
+      this.isReply = false;
+    }, 4000);
     await this.sleep(5000);
     this.current_data_number = data_number_transmission;
     this.process.lastRequestHealth(new Date());
     this.request(health_transmission, 3);
+    setTimeout(() => {
+      if (!this.isReply) {
+        this.process.pushALert({
+          ...Alert.ECM_NOT_RESPONDING,
+          created_at: new Date(),
+        });
+      }
+      this.isReply = false;
+    }, 4000);
     // } else {
     //   this.logger.error('port is closed');
     // }
