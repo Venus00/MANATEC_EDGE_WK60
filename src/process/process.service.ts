@@ -183,7 +183,7 @@ export class ProcessService implements OnModuleInit {
   }
   async pushStatus() {
     if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0']) {
-      this.logger.log(this.status.last_request_vims)
+      this.logger.log(this.status.last_request_vims);
       if (this.status.last_request_vims !== undefined) {
         this.logger.log('updating last request vims');
         await this.statusService.updateReplyDate(this.status.last_request_vims);
