@@ -11,6 +11,7 @@ interface PAYLOAD {
   version_protocole: string;
   version: string;
   sn: string;
+  serial: string;
   unit: string;
   total: string;
   number_weightings: string;
@@ -51,6 +52,7 @@ export class SerialService implements OnModuleInit {
     version_protocole: '',
     version: '1.1.6 0.29715',
     sn: '',
+    serial: '',
     unit: 'T',
     total: '',
     number_weightings: '',
@@ -93,6 +95,7 @@ export class SerialService implements OnModuleInit {
         .toString()
         .replaceAll(':', '')
         .trim();
+      this.payload.serial = this.payload.sn;
     } catch (error) {
       this.logger.error(error);
     }

@@ -18,7 +18,7 @@ export interface STATUS {
   mac: string;
   shutdown_counter: number;
   last_log_date: Date | undefined;
-  last_response_date_vims: Date | undefined;
+  last_request_vims: Date | undefined;
   engine_status: string;
   startup_date: Date;
 }
@@ -28,8 +28,8 @@ export class ProcessService implements OnModuleInit {
   private saveFlag = true;
   private last_sent = new Date();
   private health_engine: any;
+  private last_response_date_vims: Date | undefined = undefined;
   private last_reply_vims = new Date();
-  private last_request_vims = new Date();
   private status: STATUS = {
     storage: '',
     last_log_count_alert: 0,
@@ -40,7 +40,7 @@ export class ProcessService implements OnModuleInit {
     ip: '',
     mac: '',
     shutdown_counter: 0,
-    last_response_date_vims: new Date(),
+    last_request_vims: undefined,
     engine_status: 'CK',
     startup_date: new Date(),
   };
@@ -69,8 +69,7 @@ export class ProcessService implements OnModuleInit {
     this.status.last_log_count_alert = statusFromDb.last_log_count_alert;
     this.status.last_log_count_health = statusFromDb.last_log_count_health;
     this.status.last_log_count_payload = statusFromDb.last_log_count_payload;
-    this.status.last_response_date_vims =
-      statusFromDb.last_response_date_vims || new Date();
+    this.status.last_request_vims = statusFromDb.last_request_vims;
     this.status.engine_status = statusFromDb.engine_status;
 
     await this.statusService.updateShutDownCount(
@@ -212,10 +211,10 @@ export class ProcessService implements OnModuleInit {
     this.last_reply_vims = date;
   }
   lastRequestHealth(date: Date) {
-    this.last_request_vims = date;
+    this.status.last_request_vims = date;
   }
   lastReplyHealth(date: Date) {
-    this.status.last_response_date_vims = date;
+    this.last_response_date_vims = date;
   }
   lastResponseDate(date: Date) {
     this.last_sent = date;
@@ -237,6 +236,9 @@ export class ProcessService implements OnModuleInit {
     const payload = {
       ...data,
       serial: this.status.mac,
+      engine_status: this.status.engine_status,
+      last_request_vims: this.status.last_request_vims,
+      startup_date: this.status.startup_date,
     };
     if (this.mqtt.getConnectionState()) {
       this.logger.log('connection is good published');
@@ -319,7 +321,7 @@ export class ProcessService implements OnModuleInit {
       //   }
       // }
       if (
-        new Date().getTime() - this.status.last_response_date_vims.getTime() >
+        new Date().getTime() - this.last_response_date_vims.getTime() >
         30 * 1000
       ) {
         this.logger.log('this ECM is connected but not replying 016a');

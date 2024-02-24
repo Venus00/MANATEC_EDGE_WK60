@@ -7,7 +7,7 @@ interface Status {
   shut: number;
   delta: number;
   last_log_date?: Date;
-  last_response_date_vims?: Date;
+  last_request_vims?: Date;
   engine_status: string;
 }
 @Injectable()
