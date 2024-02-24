@@ -281,6 +281,7 @@ export class ProcessService implements OnModuleInit {
 
             await this.alert.create({
               ...Alert.DEVICE,
+              serial: this.status.mac,
             });
           }
         } else {
@@ -305,6 +306,7 @@ export class ProcessService implements OnModuleInit {
           this.logger.log('insert alert');
           await this.alert.create({
             ...Alert.ECM_NOT_RESPONDING,
+            serial: this.status.mac,
           });
         }
       }
@@ -323,6 +325,7 @@ export class ProcessService implements OnModuleInit {
 
           await this.alert.create({
             ...Alert.ECM_MESSAGE_ERROR,
+            serial: this.status.mac,
           });
         }
       }
@@ -341,11 +344,13 @@ export class ProcessService implements OnModuleInit {
             this.logger.error('is not connected to wifi');
             await this.alert.create({
               ...Alert.WIFI,
+              serial: this.status.mac,
             });
           } else {
             this.logger.error('is not connected to mqtt');
             await this.alert.create({
               ...Alert.MQTT,
+              serial: this.status.mac,
             });
           }
         }
