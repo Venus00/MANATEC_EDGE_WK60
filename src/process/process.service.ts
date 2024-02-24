@@ -28,7 +28,8 @@ export class ProcessService implements OnModuleInit {
   private saveFlag = true;
   private last_sent = new Date();
   private health_engine: any;
-  private last_reply_request_vims = new Date();
+  private last_reply_vims = new Date();
+  private last_request_vims = new Date();
   private status: STATUS = {
     storage: '',
     last_log_count_alert: 0,
@@ -149,6 +150,7 @@ export class ProcessService implements OnModuleInit {
         if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0']) {
           this.mqtt.publishHealth(
             JSON.stringify({
+              id: health[i].id,
               ...JSON.parse(health[i].health),
               created_at: health[i].created_at,
             }),
@@ -207,7 +209,10 @@ export class ProcessService implements OnModuleInit {
     this.health_engine = obj;
   }
   lastReplyRequestHealth(date: Date) {
-    this.last_reply_request_vims = date;
+    this.last_reply_vims = date;
+  }
+  lastRequestHealth(date: Date) {
+    this.last_request_vims = date;
   }
   lastReplyHealth(date: Date) {
     this.status.last_response_date_vims = date;
@@ -291,8 +296,8 @@ export class ProcessService implements OnModuleInit {
         this.status.engine_status = 'CK';
       }
       if (
-        new Date().getTime() - this.last_reply_request_vims.getTime() >
-        3 * 60 * 1000
+        this.last_reply_vims.getTime() - this.last_request_vims.getTime() >
+        4 * 1000
       ) {
         this.logger.log('this ECM no responding');
         if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0']) {

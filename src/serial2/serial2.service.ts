@@ -83,11 +83,14 @@ export class Serial2Service implements OnModuleInit {
     //return the groups
     this.current_data_number = data_number_engine;
     this.request(health_engine, 1);
+    this.process.lastRequestHealth(new Date());
     await this.sleep(5000);
     this.current_data_number = data_number_machine;
     this.request(health_machine, 2);
+    this.process.lastRequestHealth(new Date());
     await this.sleep(5000);
     this.current_data_number = data_number_transmission;
+    this.process.lastRequestHealth(new Date());
     this.request(health_transmission, 3);
     // } else {
     //   this.logger.error('port is closed');
