@@ -144,7 +144,7 @@ export class ProcessService implements OnModuleInit {
       const health = await this.event.findManyHealthEvents();
       this.logger.log('health log', health.length);
       if (health.length !== 0) {
-        this.status.last_log_count_health += health.length;
+        this.status.last_log_count_health = health.length;
       }
       for (let i = 0; i < health.length; i++) {
         if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0']) {
