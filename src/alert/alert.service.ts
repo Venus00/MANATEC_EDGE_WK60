@@ -10,7 +10,11 @@ export class AlertService {
     });
   }
   async getAll() {
-    return await this.prismaService.alert.findMany({});
+    const results = await this.prismaService.alert.findMany({});
+    if (results.length === 0) {
+      await this.prismaService.$queryRaw`ALTER TABLE Alert AUTO_INCREMENT = 1`;
+    }
+    return results;
   }
   async delete(id: number) {
     await this.prismaService.alert.delete({

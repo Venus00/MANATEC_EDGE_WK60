@@ -6,7 +6,11 @@ export class EventService {
   constructor(private prisma: PrismaService) {}
 
   async events() {
-    return await this.prisma.event.findMany();
+    const results = await this.prisma.event.findMany();
+    if (results.length === 0) {
+      await this.prisma.$queryRaw`ALTER TABLE Event AUTO_INCREMENT = 1`;
+    }
+    return results;
   }
   async deleteHealth(id: number) {
     await this.prisma.health.delete({
@@ -14,7 +18,6 @@ export class EventService {
         id,
       },
     });
-    await this.prisma.$queryRaw`ALTER TABLE Health AUTO_INCREMENT = 1`;
   }
   async delete(id: number) {
     await this.prisma.event.delete({
@@ -22,10 +25,13 @@ export class EventService {
         id,
       },
     });
-    await this.prisma.$queryRaw`ALTER TABLE Event AUTO_INCREMENT = 1`;
   }
   async findManyHealthEvents() {
-    return await this.prisma.health.findMany();
+    const results = await this.prisma.health.findMany();
+    if (results.length === 0) {
+      await this.prisma.$queryRaw`ALTER TABLE Health AUTO_INCREMENT = 1`;
+    }
+    return results;
   }
   async createHealth(health: string) {
     await this.prisma.health.create({
