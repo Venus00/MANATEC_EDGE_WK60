@@ -320,25 +320,6 @@ export class ProcessService implements OnModuleInit {
       //     });
       //   }
       // }
-      if (
-        new Date().getTime() - this.last_response_date_vims.getTime() >
-        35 * 1000
-      ) {
-        this.logger.log('this ECM is connected but not replying 016a');
-        if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0']) {
-          this.pushALert({
-            ...Alert.ECM_MESSAGE_ERROR,
-            created_at: new Date(),
-          });
-        } else if (this.saveFlag) {
-          this.logger.log('insert alert');
-
-          await this.alert.create({
-            ...Alert.ECM_MESSAGE_ERROR,
-            serial: this.status.mac,
-          });
-        }
-      }
       if (!this.saveFlag) {
         this.mqtt.publishAlert(
           JSON.stringify({
@@ -363,6 +344,40 @@ export class ProcessService implements OnModuleInit {
               serial: this.status.mac,
             });
           }
+        }
+      }
+      if (this.last_response_date_vims !== undefined) {
+        this.logger.log('this ECM is connected but not replying 016a');
+        if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0']) {
+          this.pushALert({
+            ...Alert.ECM_MESSAGE_ERROR,
+            created_at: new Date(),
+          });
+        } else if (this.saveFlag) {
+          this.logger.log('insert alert');
+
+          await this.alert.create({
+            ...Alert.ECM_MESSAGE_ERROR,
+            serial: this.status.mac,
+          });
+        }
+      } else if (
+        new Date().getTime() - this.last_response_date_vims.getTime() >
+        35 * 1000
+      ) {
+        this.logger.log('this ECM is connected but not replying 016a');
+        if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0']) {
+          this.pushALert({
+            ...Alert.ECM_MESSAGE_ERROR,
+            created_at: new Date(),
+          });
+        } else if (this.saveFlag) {
+          this.logger.log('insert alert');
+
+          await this.alert.create({
+            ...Alert.ECM_MESSAGE_ERROR,
+            serial: this.status.mac,
+          });
         }
       }
     } catch (error) {
