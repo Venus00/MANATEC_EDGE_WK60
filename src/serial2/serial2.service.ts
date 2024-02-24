@@ -314,6 +314,7 @@ export class Serial2Service implements OnModuleInit {
           if (sequence_number === parseInt('0003', 16)) {
             this.process.pushHealth(this.health_data);
             this.health_data = health;
+            this.process.engineHealth(this.health_data);
           }
         }
       } else if ((buffer[1] | (buffer[0] << 8)) === 0xfffd) {
