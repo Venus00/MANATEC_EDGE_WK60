@@ -270,7 +270,7 @@ export class ProcessService implements OnModuleInit {
   async checkALert() {
     try {
       if (parseInt(this.health_engine?.TR005.value) > 700) {
-        if (new Date().getTime() - this.last_sent.getTime() > 2 * 60 * 1000) {
+        if (new Date().getTime() - this.last_sent.getTime() > 15 * 60 * 1000) {
           this.logger.log('engine status MR');
           this.status.engine_status = 'MR';
           if (
