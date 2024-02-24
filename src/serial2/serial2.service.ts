@@ -114,7 +114,7 @@ export class Serial2Service implements OnModuleInit {
     //this.logger.log(this.current_request_elements);
     const request = this.buildRequest(this.current_request_elements);
     // fs.appendFileSync('test.log', request.toString('hex') + '\n');
-    //console.log(request);
+    console.log('this is the request', request);
     this.write(request);
     //let index = 0;
     // for (const request_elements in request_group) {
@@ -225,7 +225,7 @@ export class Serial2Service implements OnModuleInit {
       ...request_elements,
     ].join('');
     const crc = this.slipcrc(Buffer.from(packet_crc, 'hex')).toString('hex');
-    console.log('crc', crc);
+    //console.log('crc', crc);
     const packet = [
       request_identity,
       this.current_sequence,
