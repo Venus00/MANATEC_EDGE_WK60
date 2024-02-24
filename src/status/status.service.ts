@@ -72,6 +72,16 @@ export class StatusService {
       },
     });
   }
+  async updateReplyDate(last_request_vims: Date) {
+    return await this.prisma.status.update({
+      where: {
+        id: 1,
+      },
+      data: {
+        last_request_vims,
+      },
+    });
+  }
   async updateEventAlert(
     last_log_count_alert: number,
     last_log_count_health: number,

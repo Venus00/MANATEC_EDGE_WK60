@@ -183,6 +183,9 @@ export class ProcessService implements OnModuleInit {
   }
   async pushStatus() {
     if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0']) {
+      if (this.status.last_request_vims !== undefined) {
+        await this.statusService.updateReplyDate(this.status.last_request_vims);
+      }
       if (
         this.status.last_log_count_alert !== 0 ||
         this.status.last_log_count_health !== 0 ||
@@ -346,7 +349,7 @@ export class ProcessService implements OnModuleInit {
           }
         }
       }
-      if (this.last_response_date_vims !== undefined) {
+      if (this.last_response_date_vims === undefined) {
         this.logger.log('this ECM is connected but not replying 016a');
         if (this.mqtt.getConnectionState() && os.networkInterfaces()['wlan0']) {
           this.pushALert({
