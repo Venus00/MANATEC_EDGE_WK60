@@ -259,12 +259,10 @@ export class SerialService implements OnModuleInit {
             this.logger.log('[d] Protocole Erreur');
             this.payload.status = 'Err';
 
-            await this.process.pushALert(
-              JSON.stringify({
-                ...Alert[this.payload.error_message],
-                created_at: new Date(),
-              }),
-            );
+            await this.process.pushALert({
+              ...Alert[this.payload.error_message],
+              created_at: new Date(),
+            });
             await this.process.pushEntity(
               JSON.stringify({
                 ...this.payload,
