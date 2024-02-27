@@ -242,7 +242,7 @@ export class SerialService implements OnModuleInit {
               ).format('YYYY-MM-DD');
               this.payload.time_last_stroke = moment(
                 this.old_last_stroke,
-              ).format('hh:mm:ss');
+              ).format('HH:mm:ss');
             }
             await this.process.pushEntity(
               JSON.stringify({
