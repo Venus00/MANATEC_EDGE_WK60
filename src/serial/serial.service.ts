@@ -346,10 +346,10 @@ export class SerialService implements OnModuleInit {
     }
   }
   setRtcTime(date: string, time: string) {
-    console.log(moment(`${date} ${time}`).format('YYYY-MM-DD hh:mm:ss'));
+    console.log(moment(`${date} ${time}`).format('YYYY-MM-DD HH:mm:ss'));
     exec(
       `sudo timedatectl set-time "${moment(`${date} ${time}`).format(
-        'YYYY-MM-DD hh:mm:ss',
+        'YYYY-MM-DD HH:mm:ss',
       )}"`,
     );
   }
