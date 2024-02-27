@@ -47,20 +47,20 @@ export class MqttService implements OnModuleInit {
     this.TOPIC_PUBLISH_ALERTE = process.env.TOPIC_ALERT.replace('+', this.mac);
     this.TOPIC_PUBLISH_STATUS = process.env.TOPIC_STATUS.replace('+', this.mac);
     this.TOPIC_PUBLISH_HEALTH = process.env.TOPIC_HEALTH.replace('+', this.mac);
-    // this.client = mqtt.connect(`mqtt://${process.env.MQTT_SERVER}`, {
-    //   clientId: this.mac,
-    //   username: this.mac,
-    //   password: this.mac,
-    //   keepalive: 1,
-    //   reconnectPeriod: 1,
-    // });
-    this.client = mqtt.connect(`mqtt://test.mosquitto.org`, {
+    this.client = mqtt.connect(`mqtt://${process.env.MQTT_SERVER}`, {
       clientId: this.mac,
-      // username: this.mac,
-      // password: this.mac,
-      keepalive: 60,
+      username: this.mac,
+      password: this.mac,
+      keepalive: 1,
       reconnectPeriod: 1,
     });
+    // this.client = mqtt.connect(`mqtt://test.mosquitto.org`, {
+    //   clientId: this.mac,
+    //   // username: this.mac,
+    //   // password: this.mac,
+    //   keepalive: 60,
+    //   reconnectPeriod: 1,
+    // });
     this.client.on('connect', this.onConnect.bind(this));
     this.client.on('message', this.onMessage.bind(this));
     this.client.on('disconnect', this.onDisconnect.bind(this));
