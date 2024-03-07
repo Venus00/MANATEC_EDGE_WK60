@@ -302,6 +302,7 @@ export class Serial2Service implements OnModuleInit {
   processUtilData(buffer: Buffer) {
     if (buffer != null) {
       if ((buffer[0] | (buffer[1] << 8)) === 0xffff) {
+        this.isReply = true;
         this.logger.log('response data');
         this.process.lastReplyRequestHealth(new Date());
         const data = this.returnFrame(buffer);
