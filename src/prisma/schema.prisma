@@ -43,9 +43,9 @@ model Event {
 
 model Alert {
   id          Int      @id @default(autoincrement())
-  code        String
-  serial      String
-  description String
+  code        String?
+  serial      String?
+  description String?
   created_at  DateTime @default(now())
 }
 
